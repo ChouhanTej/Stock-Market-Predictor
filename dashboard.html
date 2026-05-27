@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SMAI Dashboard — Full portfolio stats, market gainers, sector heatmaps, and AI Fear & Greed indexing.">
+  <title>SMAI — Trading Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- ====== MAIN CONTAINER ====== -->
+  <div class="app-layout">
+    
+    <!-- ====== SIDEBAR NAV ====== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">📈</span>
+        <div class="sidebar-logo-text">
+          SMAI
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="index.html" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">🌐</span>
+          <span class="sidebar-nav-label">Landing Page</span>
+        </a>
+        <a href="dashboard.html" class="sidebar-nav-item active">
+          <span class="sidebar-nav-icon">📊</span>
+          <span class="sidebar-nav-label">Dashboard</span>
+        </a>
+        <a href="analyzer.html" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">📈</span>
+          <span class="sidebar-nav-label">Stock Analyzer</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="theme-toggle-wrapper" style="padding: var(--sp-2) var(--sp-3); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-xs); color: var(--text-secondary);">
+          <span class="theme-label">Light Mode</span>
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Theme">
+            <span class="toggle-circle"></span>
+          </button>
+        </div>
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">👤</div>
+          <div class="sidebar-user-info">
+            <span class="name">Guest Trader</span>
+            <span class="plan">Free Tier</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="main-content">
+      
+      <!-- ====== HEADER ====== -->
+      <header class="app-header" id="app-header">
+        <div class="header-left">
+          <h1 class="page-title">Market Overview</h1>
+          <p class="page-subtitle">Track portfolios, heatmaps, and global momentum indexes</p>
+        </div>
+        
+        <div class="header-actions">
+          <div class="market-status positive">
+            <span class="status-dot"></span> Live Market Data (Simulated)
+          </div>
+        </div>
+      </header>
+
+      <!-- ====== PORTFOLIO / OVERVIEW CARDS ====== -->
+      <section class="overview-cards">
+        <div class="overview-card cyan">
+          <div class="overview-card-label">Portfolio Net Value <span class="overview-card-icon">💼</span></div>
+          <div class="overview-card-value" id="portfolio-value">₹42,580.40</div>
+          <div class="overview-card-change up">+8.42% (+₹3,310.20) this month</div>
+        </div>
+
+        <div class="overview-card green">
+          <div class="overview-card-label">Total Realized P&L <span class="overview-card-icon">📈</span></div>
+          <div class="overview-card-value positive" id="portfolio-pnl">+₹5,890.10</div>
+          <div class="overview-card-change up">All-Time High Reached</div>
+        </div>
+
+        <div class="overview-card purple">
+          <div class="overview-card-label">ML Prediction Success Rate <span class="overview-card-icon">🤖</span></div>
+          <div class="overview-card-value" style="color: var(--accent-cyan);" id="ml-success">74.2%</div>
+          <div class="overview-card-change up">Across last 50 alerts</div>
+        </div>
+
+        <div class="overview-card red">
+          <div class="overview-card-label">Market Risk Score <span class="overview-card-icon">🚨</span></div>
+          <div class="overview-card-value" style="color: var(--accent-amber);" id="risk-score">Moderate (42)</div>
+          <div class="overview-card-change up">Hedge Ratio: 15% Recommended</div>
+        </div>
+      </section>
+
+      <!-- ====== MARKET INDEX TICKER ROW ====== -->
+      <section class="indices-strip" style="margin-top: var(--sp-4);">
+        <div class="index-card">
+          <span class="index-name">NIFTY 50</span>
+          <span class="index-price">22,310.50</span>
+          <span class="index-change positive">+0.82%</span>
+        </div>
+        <div class="index-card">
+          <span class="index-name">SENSEX</span>
+          <span class="index-price">73,420.10</span>
+          <span class="index-change positive">+0.75%</span>
+        </div>
+        <div class="index-card">
+          <span class="index-name">S&P 500</span>
+          <span class="index-price">5,180.20</span>
+          <span class="index-change negative">-0.24%</span>
+        </div>
+        <div class="index-card">
+          <span class="index-name">NASDAQ</span>
+          <span class="index-price">16,210.40</span>
+          <span class="index-change negative">-0.48%</span>
+        </div>
+        <div class="index-card">
+          <span class="index-name">RELIANCE.NS</span>
+          <span class="index-price">2,910.15</span>
+          <span class="index-change positive">+1.24%</span>
+        </div>
+      </section>
+
+      <!-- ====== TWO-COLUMN DASHBOARD GRID ====== -->
+      <div class="analyzer-grid" style="margin-top: var(--sp-4);">
+        
+        <!-- ====== LEFT COLUMN: Heatmap + Gainers/Losers ====== -->
+        <div class="grid-col-8">
+          
+          <!-- SECTOR HEATMAP -->
+          <div class="glass-panel" style="height: auto;">
+            <div class="glass-panel-header">
+              <span class="glass-panel-title">🌐 Sector Heatmap</span>
+              <span class="panel-badge">Based on Daily Gain/Loss</span>
+            </div>
+            <div class="heatmap-grid" id="sector-heatmap">
+              <!-- Populated by dashboard.js -->
+            </div>
+          </div>
+
+          <!-- GAINERS AND LOSERS ROW -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-top: var(--sp-4);">
+            <div class="glass-panel">
+              <div class="glass-panel-header">
+                <span class="glass-panel-title" style="color: var(--accent-green);">🔥 Top Gainers</span>
+              </div>
+              <table class="market-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>Gain</th>
+                  </tr>
+                </thead>
+                <tbody id="gainers-table-body">
+                  <!-- Populated by dashboard.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="glass-panel">
+              <div class="glass-panel-header">
+                <span class="glass-panel-title" style="color: var(--accent-magenta);">❄️ Top Losers</span>
+              </div>
+              <table class="market-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>Loss</th>
+                  </tr>
+                </thead>
+                <tbody id="losers-table-body">
+                  <!-- Populated by dashboard.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== RIGHT COLUMN: Fear & Greed Indicator ====== -->
+        <div class="grid-col-4">
+          
+          <!-- FEAR & GREED CARD -->
+          <div class="glass-panel" style="min-height: 380px;">
+            <div class="glass-panel-header">
+              <span class="glass-panel-title">⚖️ AI Fear & Greed Index</span>
+            </div>
+            <div class="fear-greed-container">
+              <canvas id="fear-greed-canvas" width="200" height="120"></canvas>
+              <div class="fear-greed-value" id="fear-greed-label">64</div>
+              <div class="fear-greed-label" id="fear-greed-desc" style="color: var(--accent-cyan);">GREED</div>
+              
+              <div class="fear-greed-scale" style="width: 100%;">
+                <span>Extreme Fear</span>
+                <div class="fear-greed-scale-bar">
+                  <div class="fear-greed-pointer" id="fear-greed-pointer" style="left: 64%;"></div>
+                </div>
+                <span>Extreme Greed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PORTFOLIO RECOMMENDATIONS -->
+          <div class="glass-panel" style="margin-top: var(--sp-4);">
+            <div class="glass-panel-header">
+              <span class="glass-panel-title">🤖 AI Rebalance Advice</span>
+            </div>
+            <div style="padding: var(--sp-4) var(--sp-5);">
+              <ul style="font-size: var(--fs-sm); color: var(--text-secondary); padding-left: 1.2rem; line-height: 1.8;">
+                <li>Volatility spikes detected in US tech; consider taking profits on high beta positions.</li>
+                <li>Indian renewable energy stocks (IREDA) are demonstrating robust support levels.</li>
+                <li>Reallocate 5% capital into safe-haven energy or gold assets to lower risk vectors.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== FOOTER ====== -->
+      <footer class="app-footer">
+        <p>
+          ⚠️ Disclaimer: All trading stats and portfolios shown here are simulated demo records. Always do your own research before committing actual funds.
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script type="module" src="js/dashboard.js"></script>
+  <script type="module">
+    // Direct theme toggle handling
+    const toggleBtn = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+      toggleBtn.classList.add('active');
+    }
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      toggleBtn.classList.toggle('active');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>

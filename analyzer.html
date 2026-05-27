@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SMAI Stock Analyzer — Professional technical stock analyzer powered by AI/ML predictions, sentiment engine, and pattern recognition.">
+  <title>SMAI — Stock Trend Analyzer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+  <link rel="stylesheet" href="index.css">
+  <script type="text/javascript" src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+
+  <!-- ====== MAIN CONTAINER ====== -->
+  <div class="app-layout">
+    
+    <!-- ====== SIDEBAR NAV ====== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">📈</span>
+        <div class="sidebar-logo-text">
+          SMAI
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="index.html" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">🌐</span>
+          <span class="sidebar-nav-label">Landing Page</span>
+        </a>
+        <a href="dashboard.html" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">📊</span>
+          <span class="sidebar-nav-label">Dashboard</span>
+        </a>
+        <a href="analyzer.html" class="sidebar-nav-item active">
+          <span class="sidebar-nav-icon">📈</span>
+          <span class="sidebar-nav-label">Stock Analyzer</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="theme-toggle-wrapper" style="padding: var(--sp-2) var(--sp-3); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-xs); color: var(--text-secondary);">
+          <span class="theme-label">Light Mode</span>
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Theme">
+            <span class="toggle-circle"></span>
+          </button>
+        </div>
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">👤</div>
+          <div class="sidebar-user-info">
+            <span class="name">Guest Trader</span>
+            <span class="plan">Free Tier</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="main-content">
+      
+      <!-- ====== HEADER ====== -->
+      <header class="app-header" id="app-header">
+        <div class="header-left">
+          <h1 class="page-title">Stock Analyzer</h1>
+          <p class="page-subtitle">Real-time technical metrics & predictive insights</p>
+        </div>
+
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
+              placeholder="Search symbol (e.g. AAPL, TSLA, RELIANCE.NS)"
+              autocomplete="off"
+              aria-label="Search stock symbol"
+            >
+          </div>
+          <div class="search-dropdown" id="search-dropdown" role="listbox"></div>
+        </div>
+
+        <div class="timeframe-selector" role="group" aria-label="Timeframe selection">
+          <button class="timeframe-btn" data-timeframe="1W">1W</button>
+          <button class="timeframe-btn" data-timeframe="1M">1M</button>
+          <button class="timeframe-btn" data-timeframe="3M">3M</button>
+          <button class="timeframe-btn" data-timeframe="6M">6M</button>
+          <button class="timeframe-btn active" data-timeframe="1Y">1Y</button>
+          <button class="timeframe-btn" data-timeframe="ALL">ALL</button>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="btn-api-key" title="API Settings" aria-label="API key settings">⚙️</button>
+        </div>
+      </header>
+
+      <!-- ====== STATUS BAR ====== -->
+      <div class="status-bar" id="status-bar">
+        <div class="stock-info">
+          <span class="stock-symbol-display" id="stock-symbol">AAPL</span>
+          <div class="stock-price-display">
+            <span class="current-price" id="current-price">₹0.00</span>
+            <span class="price-change positive" id="price-change">+0.00 (0.00%)</span>
+          </div>
+        </div>
+        <div class="stock-meta">
+          <div class="meta-item">
+            <span class="meta-label">Open</span>
+            <span class="meta-value" id="meta-open">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">High</span>
+            <span class="meta-value" id="meta-high">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Low</span>
+            <span class="meta-value" id="meta-low">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Avg Volume</span>
+            <span class="meta-value" id="meta-volume">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== ANALYZER GRID LAYOUT ====== -->
+      <div class="analyzer-grid">
+        
+        <!-- ====== LEFT COLUMN: Chart + Volume ====== -->
+        <div class="grid-col-8">
+          <section class="chart-section" id="chart-section">
+            <div class="chart-panel">
+              <div class="chart-toolbar">
+                <div class="chart-controls">
+                  <span class="chart-controls-label">Overlays</span>
+                  <button class="overlay-toggle active" data-overlay="sma20">
+                    <span class="overlay-dot" style="background: #ffaa00"></span>
+                    SMA 20
+                  </button>
+                  <button class="overlay-toggle active" data-overlay="sma50">
+                    <span class="overlay-dot" style="background: #a855f7"></span>
+                    SMA 50
+                  </button>
+                  <button class="overlay-toggle" data-overlay="sma200">
+                    <span class="overlay-dot" style="background: #00d4ff"></span>
+                    SMA 200
+                  </button>
+                  <button class="overlay-toggle" data-overlay="ema">
+                    <span class="overlay-dot" style="background: #ff6b6b"></span>
+                    EMA
+                  </button>
+                  <button class="overlay-toggle" data-overlay="bb">
+                    <span class="overlay-dot" style="background: #00d4ff"></span>
+                    Bollinger
+                  </button>
+                </div>
+              </div>
+              <div class="chart-container" id="chart-container">
+                <div class="loading-overlay" id="chart-loading">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ====== TECHNICAL INDICATORS GRID ====== -->
+          <section class="indicators-section animate-on-scroll" id="indicators-section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="icon">📊</span>
+                Technical Indicators
+              </h2>
+            </div>
+            <div class="indicators-grid" id="indicators-grid">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
+          <!-- ====== DETECTED PATTERNS ====== -->
+          <section class="patterns-section animate-on-scroll" id="patterns-section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="icon">🔍</span>
+                Detected Candlestick & Chart Patterns
+              </h2>
+            </div>
+            <div class="patterns-grid" id="patterns-grid">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
+          <!-- ====== COMPREHENSIVE TREND TABLE ====== -->
+          <section class="trend-section animate-on-scroll" id="trend-section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="icon">📋</span>
+                Trend Analysis Matrix
+              </h2>
+            </div>
+            <div class="trend-table-wrapper">
+              <table class="trend-table" id="trend-table">
+                <thead>
+                  <tr>
+                    <th>Indicator</th>
+                    <th>Direction</th>
+                    <th>Strength</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody id="trend-body">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- ====== RIGHT COLUMN: Watchlist, AI Prediction, News ====== -->
+        <div class="grid-col-4">
+          
+          <!-- ====== LOCAL WATCHLIST PANEL ====== -->
+          <div class="dashboard-card watchlist-card">
+            <div class="panel-header">
+              <span class="panel-title">⭐ Watchlist</span>
+              <button class="btn-sm" id="btn-add-watchlist">+ Add Current</button>
+            </div>
+            <div class="watchlist-list" id="watchlist-items">
+              <!-- Populated by watchlist.js -->
+            </div>
+          </div>
+
+          <!-- ====== AI PREDICTION CARD ====== -->
+          <section class="prediction-section" id="prediction-section" style="margin-top: var(--sp-4);">
+            <div class="prediction-card neutral" id="prediction-card">
+              <div class="prediction-header">
+                <span class="prediction-label">AI Signal Analysis</span>
+                <span class="badge" id="risk-badge" style="background: var(--accent-amber-dim); color: var(--accent-amber);">Medium Risk</span>
+              </div>
+              <div class="prediction-arrow" id="prediction-arrow">→</div>
+              <div class="prediction-direction" id="prediction-direction">─ NEUTRAL</div>
+              <div class="confidence-gauge">
+                <div class="gauge-track">
+                  <div class="gauge-fill" id="gauge-fill" style="width: 0%"></div>
+                </div>
+                <div class="confidence-text">
+                  <span>Confidence</span>
+                  <span class="confidence-value" id="confidence-value">0%</span>
+                </div>
+              </div>
+              <p class="prediction-summary" id="prediction-summary">
+                Analyzing market signals and chart patterns...
+              </p>
+            </div>
+
+            <!-- Signal Breakdown -->
+            <div class="signals-panel">
+              <div class="panel-header">
+                <span class="panel-title">Signal Components</span>
+                <span class="panel-badge" id="signal-count">0 signals</span>
+              </div>
+              <div class="signal-list" id="signal-list">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </section>
+
+          <!-- ====== NEWS SENTIMENT PANEL ====== -->
+          <div class="dashboard-card sentiment-card" style="margin-top: var(--sp-4);">
+            <div class="panel-header">
+              <span class="panel-title">📰 News Sentiment</span>
+              <span class="panel-badge" id="sentiment-overall-badge">50% Neutral</span>
+            </div>
+            <div class="sentiment-gauge-wrapper">
+              <div class="sentiment-meter-bar">
+                <div class="meter-fill positive" id="sentiment-bar-pos" style="width: 33%"></div>
+                <div class="meter-fill neutral" id="sentiment-bar-neu" style="width: 34%"></div>
+                <div class="meter-fill negative" id="sentiment-bar-neg" style="width: 33%"></div>
+              </div>
+              <div class="sentiment-meter-labels">
+                <span class="pos-text">Bullish (<span id="sentiment-percent-pos">33</span>%)</span>
+                <span class="neu-text">Neutral (<span id="sentiment-percent-neu">34</span>%)</span>
+                <span class="neg-text">Bearish (<span id="sentiment-percent-neg">33</span>%)</span>
+              </div>
+            </div>
+            <p class="sentiment-summary-text" id="sentiment-summary-text">
+              Loading news insights...
+            </p>
+            <div class="news-list" id="news-list-container">
+              <!-- Populated by sentiment.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== FOOTER ====== -->
+      <footer class="app-footer">
+        <p>
+          ⚠️ <strong>Disclaimer:</strong> SMAI is an AI-powered educational research tool. Technical predictions are based on statistical heuristics and historical data, and do not constitute financial advisory. Invest at your own risk.
+        </p>
+        <p style="margin-top: 0.5rem;">
+          © 2026 SMAI Platform. Developed with Lightweight Charts.
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ====== FLOATING AI CHATBOT ====== -->
+  <div class="chatbot-wrapper" id="chatbot-wrapper">
+    <button class="chatbot-toggle-btn" id="chatbot-toggle" aria-label="Open AI Assistant">
+      💬
+    </button>
+    <div class="chatbot-panel" id="chatbot-panel">
+      <div class="chatbot-header">
+        <div class="bot-info">
+          <span class="bot-avatar">🤖</span>
+          <div class="bot-meta">
+            <h3>SMAI Assistant</h3>
+            <span class="bot-status">Powered by Gemini AI</span>
+          </div>
+        </div>
+        <button class="btn-icon" id="chatbot-close" aria-label="Close Chat">✕</button>
+      </div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <div class="message system-message">
+          Hello! I'm your SMAI market assistant. Ask me anything about the currently loaded stock (e.g. "What is the RSI?", "Is it a good time to buy?", "Explain the indicators").
+        </div>
+      </div>
+      <div class="chatbot-input-area">
+        <input type="text" id="chatbot-input" placeholder="Type your message here..." autocomplete="off">
+        <button id="chatbot-send-btn" class="btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== API KEY MODAL ====== -->
+  <div class="modal-overlay" id="api-modal">
+    <div class="modal">
+      <h2>🔑 API & Integrations</h2>
+      <p>
+        Enter your API keys for advanced platform features. Config keys are saved safely in your browser storage.
+      </p>
+      
+      <div class="modal-field">
+        <label for="api-key-input">Alpha Vantage API Key (For Live Market Data)</label>
+        <input
+          type="text"
+          id="api-key-input"
+          class="modal-input"
+          placeholder="Alpha Vantage key (takes 10s at alphavantage.co)..."
+        >
+      </div>
+
+      <div class="modal-field" style="margin-top: 1rem;">
+        <label for="gemini-key-input">Gemini API Key (For Dynamic Chatbot Insights)</label>
+        <input
+          type="password"
+          id="gemini-key-input"
+          class="modal-input"
+          placeholder="Gemini API Key..."
+        >
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" id="modal-save">Save Settings</button>
+        <button class="btn-secondary" id="modal-demo">Use Demo Mode</button>
+      </div>
+      <button class="btn-icon" id="modal-close" style="position: absolute; top: 1rem; right: 1rem;" aria-label="Close modal">✕</button>
+    </div>
+  </div>
+
+  <!-- ====== TOAST CONTAINER ====== -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ====== APPLICATION SCRIPTS ====== -->
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/watchlist.js"></script>
+  <script type="module" src="js/chatbot.js"></script>
+  <script type="module">
+    // Direct theme toggle handling
+    const toggleBtn = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+      toggleBtn.classList.add('active');
+    }
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      toggleBtn.classList.toggle('active');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>
