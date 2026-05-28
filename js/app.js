@@ -3,7 +3,7 @@
  * Orchestrates all modules: API, Chart, Indicators, Patterns, Predictor
  */
 
-import { searchSymbols, fetchStockData, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
+import { searchSymbols, isValidSymbol, fetchStockData, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
 import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js';
 import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js';
 import { detectAllPatterns, detectSupportResistance } from './patterns.js';
@@ -119,6 +119,10 @@ function setupEventListeners() {
     if (e.key === 'Enter') {
       const val = dom.searchInput.value.trim().toUpperCase();
       if (val) {
+        if (state.demoMode && !isValidSymbol(val)) {
+          showToast(`Stock not found: "${val}". Check spelling or add an API key for live search.`, 'error');
+          return;
+        }
         selectSymbol(val, val);
         closeSearchDropdown();
       }
@@ -173,10 +177,22 @@ function setupEventListeners() {
    ====================================== */
 function handleSearch() {
   const query = dom.searchInput.value.trim();
+  
+  if (query.length === 0) {
+    closeSearchDropdown();
+    return;
+  }
+
   const results = searchSymbols(query);
 
-  if (results.length === 0 || query.length === 0) {
-    closeSearchDropdown();
+  if (results.length === 0) {
+    dom.searchDropdown.innerHTML = `
+      <div class="search-result empty" style="pointer-events: none; opacity: 0.8; padding: var(--sp-3) var(--sp-4); display: flex; align-items: center; gap: var(--sp-2);">
+        <span class="symbol" style="color: var(--accent-amber);">⚠️</span>
+        <span class="name" style="color: var(--text-secondary); font-size: var(--fs-xs);">Stock not found</span>
+      </div>
+    `;
+    dom.searchDropdown.classList.add('active');
     return;
   }
 
@@ -220,6 +236,12 @@ export async function loadStock(symbol) {
     let data;
 
     if (state.demoMode) {
+      if (!isValidSymbol(symbol)) {
+        showToast(`Stock not found: "${symbol}". Check spelling or add an API key for live search.`, 'error');
+        state.loading = false;
+        showLoading(false);
+        return;
+      }
       data = generateDemoData(symbol, 500);
       showToast(`Demo data loaded for ${symbol}`, 'info');
     } else {
@@ -227,9 +249,23 @@ export async function loadStock(symbol) {
         data = await fetchStockData(symbol, state.apiKey, 'full');
         showToast(`Live data loaded for ${symbol}`, 'success');
       } catch (err) {
-        showToast(`API Error: ${err.message}. Using demo data.`, 'error');
-        data = generateDemoData(symbol, 500);
-        state.demoMode = true;
+        if (err.message.includes('Invalid symbol') || err.message.includes('not found')) {
+          showToast(`Stock not found: "${symbol}". Check spelling or search a standard global ticker.`, 'error');
+          state.loading = false;
+          showLoading(false);
+          return;
+        } else {
+          if (isValidSymbol(symbol)) {
+            showToast(`API Error: ${err.message}. Using demo data.`, 'error');
+            data = generateDemoData(symbol, 500);
+            state.demoMode = true;
+          } else {
+            showToast(`API Error: ${err.message}. Stock not available in database.`, 'error');
+            state.loading = false;
+            showLoading(false);
+            return;
+          }
+        }
       }
     }
 

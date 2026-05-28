@@ -6,24 +6,66 @@
 const API_BASE = 'https://www.alphavantage.co/query';
 
 /** Popular stock symbols for search autocomplete */
-const POPULAR_SYMBOLS = [
+export const POPULAR_SYMBOLS = [
+  // Indian Equities (NIFTY 50 & High-Volume Tickers)
+  { symbol: 'RELIANCE.NS', name: 'Reliance Industries Ltd' },
+  { symbol: 'TCS.NS', name: 'Tata Consultancy Services Ltd' },
+  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank Ltd' },
+  { symbol: 'INFY.NS', name: 'Infosys Ltd' },
+  { symbol: 'ICICIBANK.NS', name: 'ICICI Bank Ltd' },
+  { symbol: 'SBIN.NS', name: 'State Bank of India' },
+  { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel Ltd' },
+  { symbol: 'ITC.NS', name: 'ITC Ltd' },
+  { symbol: 'HINDUNILVR.NS', name: 'Hindustan Unilever Ltd' },
+  { symbol: 'LTIM.NS', name: 'LTIMindtree Ltd' },
+  { symbol: 'LT.NS', name: 'Larsen & Toubro Ltd' },
+  { symbol: 'BAJFINANCE.NS', name: 'Bajaj Finance Ltd' },
+  { symbol: 'MARUTI.NS', name: 'Maruti Suzuki India Ltd' },
+  { symbol: 'TATASTEEL.NS', name: 'Tata Steel Ltd' },
+  { symbol: 'WIPRO.NS', name: 'Wipro Ltd' },
+  { symbol: 'TATAMOTORS.NS', name: 'Tata Motors Ltd' },
+  { symbol: 'AXISBANK.NS', name: 'Axis Bank Ltd' },
+  { symbol: 'ADANIENT.NS', name: 'Adani Enterprises Ltd' },
+  { symbol: 'ADANIPORTS.NS', name: 'Adani Ports & SEZ Ltd' },
+  { symbol: 'POWERGRID.NS', name: 'Power Grid Corp of India' },
+  { symbol: 'ONGC.NS', name: 'Oil & Natural Gas Corp Ltd' },
+  { symbol: 'NTPC.NS', name: 'NTPC Ltd' },
+  { symbol: 'COALINDIA.NS', name: 'Coal India Ltd' },
+  { symbol: 'JIOFIN.NS', name: 'Jio Financial Services Ltd' },
+  { symbol: 'IREDA.NS', name: 'Indian Renewable Energy Dev Agency' },
+  { symbol: 'YESBANK.NS', name: 'Yes Bank Ltd' },
+
+  // US Equities (NASDAQ & NYSE Giants)
   { symbol: 'AAPL', name: 'Apple Inc.' },
   { symbol: 'MSFT', name: 'Microsoft Corporation' },
   { symbol: 'GOOGL', name: 'Alphabet Inc.' },
   { symbol: 'AMZN', name: 'Amazon.com Inc.' },
   { symbol: 'TSLA', name: 'Tesla Inc.' },
   { symbol: 'NVDA', name: 'NVIDIA Corporation' },
-  { symbol: 'RELIANCE.NS', name: 'Reliance Industries Ltd' },
-  { symbol: 'TCS.NS', name: 'Tata Consultancy Services Ltd' },
-  { symbol: 'IREDA.NS', name: 'Indian Renewable Energy Development Agency' },
-  { symbol: 'YESBANK.NS', name: 'Yes Bank Ltd' },
   { symbol: 'META', name: 'Meta Platforms Inc.' },
   { symbol: 'NFLX', name: 'Netflix Inc.' },
+  { symbol: 'AMD', name: 'Advanced Micro Devices Inc.' },
+  { symbol: 'INTC', name: 'Intel Corporation' },
+  { symbol: 'QCOM', name: 'Qualcomm Inc.' },
+  { symbol: 'AVGO', name: 'Broadcom Inc.' },
+  { symbol: 'CRM', name: 'Salesforce Inc.' },
+  { symbol: 'ADBE', name: 'Adobe Inc.' },
+  { symbol: 'PYPL', name: 'PayPal Holdings Inc.' },
   { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
-  { symbol: 'V', name: 'Visa Inc.' },
+  { symbol: 'BAC', name: 'Bank of America Corp' },
   { symbol: 'WMT', name: 'Walmart Inc.' },
+  { symbol: 'COST', name: 'Costco Wholesale Corp' },
   { symbol: 'DIS', name: 'The Walt Disney Company' },
-  { symbol: 'AMD', name: 'Advanced Micro Devices' },
+  { symbol: 'NKE', name: 'Nike Inc.' },
+  { symbol: 'SBUX', name: 'Starbucks Corporation' },
+  { symbol: 'XOM', name: 'Exxon Mobil Corp' },
+  { symbol: 'CVX', name: 'Chevron Corp' },
+  { symbol: 'KO', name: 'The Coca-Cola Company' },
+  { symbol: 'PEP', name: 'PepsiCo Inc.' },
+  { symbol: 'LLY', name: 'Eli Lilly & Company' },
+  { symbol: 'JNJ', name: 'Johnson & Johnson' },
+  { symbol: 'MRK', name: 'Merck & Co. Inc.' },
+  { symbol: 'PFE', name: 'Pfizer Inc.' },
 ];
 
 /**
@@ -56,6 +98,12 @@ export function searchSymbols(query) {
   return POPULAR_SYMBOLS.filter(
     s => s.symbol.includes(q) || s.name.toUpperCase().includes(q)
   ).slice(0, 8);
+}
+
+export function isValidSymbol(symbol) {
+  if (!symbol) return false;
+  const s = symbol.toUpperCase();
+  return POPULAR_SYMBOLS.some(x => x.symbol === s);
 }
 
 /**
@@ -114,10 +162,35 @@ export async function fetchStockData(symbol, apiKey, outputSize = 'full') {
 }
 
 const REAL_WORLD_PRICES = {
+  // Indian Stocks Reference Prices (Real NSE values)
   'RELIANCE.NS': 2910.15,
   'TCS.NS': 3842.10,
+  'HDFCBANK.NS': 1620.00,
+  'INFY.NS': 1430.00,
+  'ICICIBANK.NS': 1120.00,
+  'SBIN.NS': 820.00,
+  'BHARTIARTL.NS': 1380.00,
+  'ITC.NS': 430.00,
+  'HINDUNILVR.NS': 2350.00,
+  'LTIM.NS': 4750.00,
+  'LT.NS': 3520.00,
+  'BAJFINANCE.NS': 6850.00,
+  'MARUTI.NS': 12400.00,
+  'TATASTEEL.NS': 165.00,
+  'WIPRO.NS': 460.00,
+  'TATAMOTORS.NS': 950.00,
+  'AXISBANK.NS': 1150.00,
+  'ADANIENT.NS': 3250.00,
+  'ADANIPORTS.NS': 1340.00,
+  'POWERGRID.NS': 310.00,
+  'ONGC.NS': 275.00,
+  'NTPC.NS': 360.00,
+  'COALINDIA.NS': 470.00,
+  'JIOFIN.NS': 355.00,
   'IREDA.NS': 188.40,
   'YESBANK.NS': 21.40,
+
+  // US Stocks Reference Prices (USD value converted to Rupees at ~83.50/USD rate)
   AAPL: 15400.00,
   MSFT: 35000.00,
   GOOGL: 14500.00,
@@ -127,6 +200,27 @@ const REAL_WORLD_PRICES = {
   META: 38000.00,
   NFLX: 50000.00,
   AMD: 13500.00,
+  INTC: 2600.00,
+  QCOM: 17500.00,
+  AVGO: 115000.00,
+  CRM: 22000.00,
+  ADBE: 41000.00,
+  PYPL: 5200.00,
+  JPM: 16500.00,
+  BAC: 3200.00,
+  WMT: 5100.00,
+  COST: 66000.00,
+  DIS: 8800.00,
+  NKE: 8000.00,
+  SBUX: 6400.00,
+  XOM: 9800.00,
+  CVX: 13000.00,
+  KO: 5200.00,
+  PEP: 14000.00,
+  LLY: 65000.00,
+  JNJ: 12500.00,
+  MRK: 10500.00,
+  PFE: 2300.00,
 };
 
 /**
@@ -341,6 +435,7 @@ function gaussianRandom(rng) {
 
 export default {
   searchSymbols,
+  isValidSymbol,
   fetchStockData,
   generateDemoData,
   filterByTimeframe,
