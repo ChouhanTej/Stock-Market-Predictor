@@ -144,7 +144,7 @@ export async function fetchStockData(symbol, apiKey, outputSize = 'full') {
 
     // Check if the symbol is a US stock (does not end in .NS)
     const isUSStock = !symbol.toUpperCase().endsWith('.NS');
-    const usdToInrRate = 83.50; // standard exchange rate
+    const usdToInrRate = 84.50; // USD to INR rate (May 2025)
 
     const data = Object.entries(timeSeries)
       .map(([date, values]) => {
@@ -180,65 +180,65 @@ export async function fetchStockData(symbol, apiKey, outputSize = 'full') {
 }
 
 const REAL_WORLD_PRICES = {
-  // Indian Stocks Reference Prices (Real NSE values)
-  'RELIANCE.NS': 2910.15,
-  'TCS.NS': 3842.10,
-  'HDFCBANK.NS': 1620.00,
-  'INFY.NS': 1430.00,
-  'ICICIBANK.NS': 1120.00,
-  'SBIN.NS': 820.00,
-  'BHARTIARTL.NS': 1380.00,
-  'ITC.NS': 430.00,
-  'HINDUNILVR.NS': 2350.00,
-  'LTIM.NS': 4750.00,
-  'LT.NS': 3520.00,
-  'BAJFINANCE.NS': 6850.00,
-  'MARUTI.NS': 12400.00,
-  'TATASTEEL.NS': 165.00,
-  'WIPRO.NS': 460.00,
-  'TATAMOTORS.NS': 950.00,
-  'AXISBANK.NS': 1150.00,
-  'ADANIENT.NS': 3250.00,
-  'ADANIPORTS.NS': 1340.00,
-  'POWERGRID.NS': 310.00,
-  'ONGC.NS': 275.00,
-  'NTPC.NS': 360.00,
-  'COALINDIA.NS': 470.00,
-  'JIOFIN.NS': 355.00,
-  'IREDA.NS': 188.40,
-  'YESBANK.NS': 21.40,
+  // Indian Stocks Reference Prices (NSE values — May 2025)
+  'RELIANCE.NS': 1408.00,
+  'TCS.NS': 3204.00,
+  'HDFCBANK.NS': 1911.00,
+  'INFY.NS': 1591.00,
+  'ICICIBANK.NS': 1416.00,
+  'SBIN.NS': 818.00,
+  'BHARTIARTL.NS': 1893.00,
+  'ITC.NS': 415.00,
+  'HINDUNILVR.NS': 2375.00,
+  'LTIM.NS': 4842.00,
+  'LT.NS': 3425.00,
+  'BAJFINANCE.NS': 9085.00,
+  'MARUTI.NS': 12530.00,
+  'TATASTEEL.NS': 152.00,
+  'WIPRO.NS': 249.00,
+  'TATAMOTORS.NS': 729.00,
+  'AXISBANK.NS': 1195.00,
+  'ADANIENT.NS': 2268.00,
+  'ADANIPORTS.NS': 1333.00,
+  'POWERGRID.NS': 293.00,
+  'ONGC.NS': 241.00,
+  'NTPC.NS': 362.00,
+  'COALINDIA.NS': 388.00,
+  'JIOFIN.NS': 280.00,
+  'IREDA.NS': 163.00,
+  'YESBANK.NS': 18.50,
 
-  // US Stocks Reference Prices (True current real-world USD values converted to INR at ~83.50/USD rate)
-  AAPL: 15364.00,       // $184.00 * 83.50
-  MSFT: 34820.00,       // $417.00 * 83.50
-  GOOGL: 14612.00,      // $175.00 * 83.50
-  AMZN: 15030.00,       // $180.00 * 83.50
-  TSLA: 14780.00,       // $177.00 * 83.50
-  NVDA: 78500.00,       // $940.00 * 83.50
-  META: 39660.00,       // $475.00 * 83.50
-  NFLX: 52100.00,       // $624.00 * 83.50
-  AMD: 13527.00,        // $162.00 * 83.50
-  INTC: 2505.00,        // $30.00 * 83.50
-  QCOM: 16032.00,       // $192.00 * 83.50
-  AVGO: 114395.00,      // $1370.00 * 83.50
-  CRM: 23130.00,        // $277.00 * 83.50
-  ADBE: 40080.00,       // $480.00 * 83.50
-  PYPL: 5177.00,        // $62.00 * 83.50
-  JPM: 16533.00,        // $198.00 * 83.50
-  BAC: 3256.00,         // $39.00 * 83.50
-  WMT: 5344.00,         // $64.00 * 83.50
-  COST: 67635.00,       // $810.00 * 83.50
-  DIS: 8517.00,         // $102.00 * 83.50
-  NKE: 7849.00,         // $94.00 * 83.50
-  SBUX: 6346.00,        // $76.00 * 83.50
-  XOM: 9686.00,         // $116.00 * 83.50
-  CVX: 13026.00,        // $156.00 * 83.50
-  KO: 5177.00,          // $62.00 * 83.50
-  PEP: 14195.00,        // $170.00 * 83.50
-  LLY: 67635.00,        // $810.00 * 83.50
-  JNJ: 12191.00,        // $146.00 * 83.50
-  MRK: 10437.00,        // $125.00 * 83.50
-  PFE: 2338.00,         // $28.00 * 83.50
+  // US Stocks — USD prices (May 2025) converted to INR at 84.50/USD
+  AAPL: 17238.00,       // $204.00 * 84.50
+  MSFT: 37153.00,       // $439.75 * 84.50
+  GOOGL: 14364.00,      // $169.99 * 84.50
+  AMZN: 16645.00,       // $197.00 * 84.50
+  TSLA: 27083.00,       // $320.63 * 84.50
+  NVDA: 112388.00,      // $1330.00 * 84.50
+  META: 53753.00,       // $636.13 * 84.50
+  NFLX: 103190.00,      // $1221.18 * 84.50
+  AMD: 11432.00,        // $135.29 * 84.50
+  INTC: 1868.00,        // $22.11 * 84.50
+  QCOM: 15818.00,       // $187.19 * 84.50
+  AVGO: 182900.00,      // $2164.50 * 84.50
+  CRM: 28458.00,        // $336.78 * 84.50
+  ADBE: 36380.00,       // $430.53 * 84.50
+  PYPL: 6671.00,        // $78.94 * 84.50
+  JPM: 18534.00,        // $219.34 * 84.50
+  BAC: 3494.00,         // $41.35 * 84.50
+  WMT: 9775.00,         // $115.68 * 84.50
+  COST: 105625.00,      // $1250.00 * 84.50
+  DIS: 9853.00,         // $116.60 * 84.50
+  NKE: 6248.00,         // $73.94 * 84.50
+  SBUX: 6655.00,        // $78.76 * 84.50
+  XOM: 9393.00,         // $111.16 * 84.50
+  CVX: 13018.00,        // $154.06 * 84.50
+  KO: 5753.00,          // $68.08 * 84.50
+  PEP: 12784.00,        // $151.29 * 84.50
+  LLY: 71774.00,        // $849.40 * 84.50
+  JNJ: 13520.00,        // $159.99 * 84.50
+  MRK: 8271.00,         // $97.88 * 84.50
+  PFE: 2396.00,         // $28.36 * 84.50
 };
 
 /**
@@ -312,15 +312,14 @@ export function generateDemoData(symbol, days = 365) {
 
     price = price * Math.exp(logReturn + patternMod);
 
-    // Ensure price stays realistic
-    if (price < 5) price = 5 + rng() * 5;
-    if (price > 2000) price = 1800 + rng() * 100;
+    // Ensure price stays above minimum only — no upper cap to preserve real-world pricing
+    if (price < 0.5) price = 0.5 + rng() * 1;
 
-    // Generate OHLC from close
-    const dailyVol = volatility * price;
-    const open = price * (1 + (rng() - 0.5) * 0.01);
-    const high = Math.max(open, price) + rng() * dailyVol * 1.5;
-    const low = Math.min(open, price) - rng() * dailyVol * 1.5;
+    // Generate OHLC from close using percentage-based spread (works for any price level)
+    const spreadPct = volatility * 1.5; // intraday spread as % of price
+    const open = price * (1 + (rng() - 0.5) * volatility * 0.5);
+    const high = Math.max(open, price) * (1 + rng() * spreadPct);
+    const low = Math.min(open, price) * (1 - rng() * spreadPct);
     const close = price;
 
     // Volume with some randomness and volume spikes

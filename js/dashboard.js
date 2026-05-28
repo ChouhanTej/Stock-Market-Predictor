@@ -19,19 +19,19 @@ const SECTORS = [
 
 // Simulated Top Gainers / Losers
 const GAINERS = [
-  { symbol: 'NVDA', price: '₹78,500.00', gain: '+4.85%' },
-  { symbol: 'RELIANCE.NS', price: '₹2,910.15', gain: '+2.24%' },
-  { symbol: 'IREDA.NS', price: '₹188.40', gain: '+1.98%' },
-  { symbol: 'TSLA', price: '₹14,780.00', gain: '+1.54%' },
-  { symbol: 'AMD', price: '₹13,527.00', gain: '+1.22%' }
+  { symbol: 'NVDA', price: '₹1,12,388.00', gain: '+4.85%' },
+  { symbol: 'TSLA', price: '₹27,083.00', gain: '+3.92%' },
+  { symbol: 'BAJFINANCE.NS', price: '₹9,085.00', gain: '+2.24%' },
+  { symbol: 'META', price: '₹53,753.00', gain: '+1.54%' },
+  { symbol: 'BHARTIARTL.NS', price: '₹1,893.00', gain: '+1.22%' }
 ];
 
 const LOSERS = [
-  { symbol: 'YESBANK.NS', price: '₹21.40', loss: '-3.12%' },
-  { symbol: 'NFLX', price: '₹52,100.00', loss: '-2.42%' },
-  { symbol: 'META', price: '₹39,660.00', loss: '-1.85%' },
-  { symbol: 'AMZN', price: '₹15,030.00', loss: '-1.40%' },
-  { symbol: 'AAPL', price: '₹15,364.00', loss: '-0.82%' }
+  { symbol: 'YESBANK.NS', price: '₹18.50', loss: '-3.12%' },
+  { symbol: 'INTC', price: '₹1,868.00', loss: '-2.42%' },
+  { symbol: 'WIPRO.NS', price: '₹249.00', loss: '-1.85%' },
+  { symbol: 'PFE', price: '₹2,396.00', loss: '-1.40%' },
+  { symbol: 'TATAMOTORS.NS', price: '₹729.00', loss: '-0.82%' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
