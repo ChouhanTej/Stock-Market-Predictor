@@ -119,6 +119,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Animated gradient background */
@@ -2638,6 +2639,40 @@ body::before {
   color: var(--text-primary);
 }
 
+/* ---- Sidebar pill toggle ---- */
+.theme-toggle-btn {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn .toggle-circle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+}
+
+.theme-toggle-btn.active {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.theme-toggle-btn.active .toggle-circle {
+  transform: translateX(18px);
+  background: #fff;
+}
+
 .top-bar-icon-btn {
   width: 38px;
   height: 38px;
@@ -3694,6 +3729,333 @@ body.light-mode .signal-bar {
 
 body.light-mode .signal-bar::before {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Header & Status Bar ---- */
+body.light-mode .app-header,
+body.light-mode .app-header + .status-bar {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(20px);
+}
+
+body.light-mode .status-bar {
+  background: rgba(248, 250, 252, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .current-price { color: #0f172a; }
+
+/* ---- Search ---- */
+body.light-mode .search-input-wrapper {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .search-input {
+  color: #0f172a;
+}
+
+body.light-mode .search-input::placeholder { color: #94a3b8; }
+
+body.light-mode .search-dropdown {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+body.light-mode .search-result:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ---- Timeframe & Overlay buttons ---- */
+body.light-mode .timeframe-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+body.light-mode .timeframe-btn:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: #0f172a;
+}
+
+body.light-mode .timeframe-btn.active {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: #fff;
+}
+
+body.light-mode .overlay-toggle {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+body.light-mode .overlay-toggle.active {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.4);
+  color: var(--accent-cyan);
+}
+
+/* ---- Chart Panel ---- */
+body.light-mode .chart-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .chart-toolbar {
+  background: rgba(248, 250, 252, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ---- Prediction Card ---- */
+body.light-mode .prediction-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .gauge-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .prediction-summary {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+  color: #475569;
+}
+
+body.light-mode .prediction-label { color: #475569; }
+
+/* ---- Signals Panel ---- */
+body.light-mode .signals-panel,
+body.light-mode .panel-header { color: #0f172a; }
+
+body.light-mode .panel-badge {
+  background: rgba(0, 0, 0, 0.06);
+  color: #475569;
+}
+
+/* ---- Indicators Grid ---- */
+body.light-mode .indicator-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .indicator-card:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+body.light-mode .indicator-label { color: #475569; }
+body.light-mode .indicator-value { color: #0f172a; }
+body.light-mode .indicator-signal { color: #475569; }
+
+body.light-mode .spark-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ---- Patterns Grid ---- */
+body.light-mode .pattern-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .pattern-card:hover {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+body.light-mode .pattern-name { color: #0f172a; }
+body.light-mode .pattern-desc { color: #475569; }
+
+/* ---- Trend Table ---- */
+body.light-mode .trend-table th {
+  background: rgba(0, 0, 0, 0.03);
+  color: #475569;
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .trend-table td {
+  border-bottom-color: rgba(0, 0, 0, 0.04);
+  color: #0f172a;
+}
+
+body.light-mode .trend-table tr:hover td {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ---- Watchlist ---- */
+body.light-mode .watchlist-item {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .watchlist-item:hover,
+body.light-mode .watchlist-item.active {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+body.light-mode .watchlist-symbol { color: #0f172a; }
+
+/* ---- Risk Panel ---- */
+body.light-mode .risk-score-ring {
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.08));
+}
+
+/* ---- Overview Cards (dashboard) ---- */
+body.light-mode .overview-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .overview-card:hover {
+  background: #ffffff;
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* ---- Heatmap ---- */
+body.light-mode .heatmap-cell {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .heatmap-label { color: #475569; }
+
+/* ---- Gainers / Losers table ---- */
+body.light-mode table {
+  color: #0f172a;
+}
+
+body.light-mode table th {
+  background: rgba(0, 0, 0, 0.03);
+  color: #475569;
+}
+
+body.light-mode table tr:hover td {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ---- Sections / Section headers ---- */
+body.light-mode .section-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .section-title { color: #0f172a; }
+body.light-mode .section-subtitle { color: #475569; }
+
+/* ---- API Key Modal ---- */
+body.light-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+body.light-mode .modal-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .modal-input {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+body.light-mode .modal-input:focus {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.03);
+}
+
+body.light-mode .modal-title { color: #0f172a; }
+body.light-mode .modal-desc { color: #475569; }
+
+/* ---- Toast notifications ---- */
+body.light-mode .toast {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ---- Chatbot ---- */
+body.light-mode .chatbot-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+body.light-mode .chatbot-header {
+  background: rgba(248, 250, 252, 0.98);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .chat-message.bot .chat-bubble {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+body.light-mode .chatbot-textarea {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+body.light-mode .chat-suggestion {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+body.light-mode .chat-suggestion:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* ---- Btn icon (header) ---- */
+body.light-mode .btn-icon {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+body.light-mode .btn-icon:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: #0f172a;
+}
+
+/* ---- Sentiment section ---- */
+body.light-mode .sentiment-bar-track {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .news-item {
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .news-item:hover { background: rgba(0, 0, 0, 0.02); }
+body.light-mode .news-item-title { color: #0f172a; }
+body.light-mode .news-ai-summary { color: #475569; }
+
+/* ---- Action Recommendation ---- */
+body.light-mode .action-recommendation {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+/* ---- Theme toggle wrapper label ---- */
+body.light-mode .theme-label { color: #475569; }
+
+/* ---- Scrollbars in light mode ---- */
+body.light-mode ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+body.light-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
 
 /* ============================================

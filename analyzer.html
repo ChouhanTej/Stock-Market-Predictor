@@ -373,17 +373,23 @@
   <script type="module" src="js/watchlist.js?v=20250528b"></script>
   <script type="module" src="js/chatbot.js?v=20250528b"></script>
   <script type="module">
-    // Direct theme toggle handling
     const toggleBtn = document.getElementById('theme-toggle');
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-      document.body.classList.add('light-mode');
-      toggleBtn.classList.add('active');
+    const themeLabel = document.querySelector('.theme-label');
+
+    function applyTheme(mode) {
+      const isLight = mode === 'light';
+      document.body.classList.toggle('light-mode', isLight);
+      toggleBtn.classList.toggle('active', isLight);
+      if (themeLabel) themeLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
     }
+
+    // Apply saved preference
+    applyTheme(localStorage.getItem('theme') || 'dark');
+
     toggleBtn.addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-      toggleBtn.classList.toggle('active');
-      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+      const nowLight = !document.body.classList.contains('light-mode');
+      applyTheme(nowLight ? 'light' : 'dark');
+      localStorage.setItem('theme', nowLight ? 'light' : 'dark');
     });
   </script>
 </body>
