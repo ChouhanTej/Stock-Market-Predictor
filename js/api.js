@@ -142,15 +142,33 @@ export async function fetchStockData(symbol, apiKey, outputSize = 'full') {
       throw new Error('No data returned from API');
     }
 
+    // Check if the symbol is a US stock (does not end in .NS)
+    const isUSStock = !symbol.toUpperCase().endsWith('.NS');
+    const usdToInrRate = 83.50; // standard exchange rate
+
     const data = Object.entries(timeSeries)
-      .map(([date, values]) => ({
-        time: date,
-        open: parseFloat(values['1. open']),
-        high: parseFloat(values['2. high']),
-        low: parseFloat(values['3. low']),
-        close: parseFloat(values['4. close']),
-        volume: parseInt(values['5. volume'], 10),
-      }))
+      .map(([date, values]) => {
+        let open = parseFloat(values['1. open']);
+        let high = parseFloat(values['2. high']);
+        let low = parseFloat(values['3. low']);
+        let close = parseFloat(values['4. close']);
+
+        if (isUSStock) {
+          open *= usdToInrRate;
+          high *= usdToInrRate;
+          low *= usdToInrRate;
+          close *= usdToInrRate;
+        }
+
+        return {
+          time: date,
+          open: parseFloat(open.toFixed(2)),
+          high: parseFloat(high.toFixed(2)),
+          low: parseFloat(low.toFixed(2)),
+          close: parseFloat(close.toFixed(2)),
+          volume: parseInt(values['5. volume'], 10),
+        };
+      })
       .sort((a, b) => a.time.localeCompare(b.time));
 
     setCache(cacheKey, data);
@@ -190,37 +208,37 @@ const REAL_WORLD_PRICES = {
   'IREDA.NS': 188.40,
   'YESBANK.NS': 21.40,
 
-  // US Stocks Reference Prices (USD value converted to Rupees at ~83.50/USD rate)
-  AAPL: 15400.00,
-  MSFT: 35000.00,
-  GOOGL: 14500.00,
-  AMZN: 14800.00,
-  TSLA: 14700.00,
-  NVDA: 88000.00,
-  META: 38000.00,
-  NFLX: 50000.00,
-  AMD: 13500.00,
-  INTC: 2600.00,
-  QCOM: 17500.00,
-  AVGO: 115000.00,
-  CRM: 22000.00,
-  ADBE: 41000.00,
-  PYPL: 5200.00,
-  JPM: 16500.00,
-  BAC: 3200.00,
-  WMT: 5100.00,
-  COST: 66000.00,
-  DIS: 8800.00,
-  NKE: 8000.00,
-  SBUX: 6400.00,
-  XOM: 9800.00,
-  CVX: 13000.00,
-  KO: 5200.00,
-  PEP: 14000.00,
-  LLY: 65000.00,
-  JNJ: 12500.00,
-  MRK: 10500.00,
-  PFE: 2300.00,
+  // US Stocks Reference Prices (True current real-world USD values converted to INR at ~83.50/USD rate)
+  AAPL: 15364.00,       // $184.00 * 83.50
+  MSFT: 34820.00,       // $417.00 * 83.50
+  GOOGL: 14612.00,      // $175.00 * 83.50
+  AMZN: 15030.00,       // $180.00 * 83.50
+  TSLA: 14780.00,       // $177.00 * 83.50
+  NVDA: 78500.00,       // $940.00 * 83.50
+  META: 39660.00,       // $475.00 * 83.50
+  NFLX: 52100.00,       // $624.00 * 83.50
+  AMD: 13527.00,        // $162.00 * 83.50
+  INTC: 2505.00,        // $30.00 * 83.50
+  QCOM: 16032.00,       // $192.00 * 83.50
+  AVGO: 114395.00,      // $1370.00 * 83.50
+  CRM: 23130.00,        // $277.00 * 83.50
+  ADBE: 40080.00,       // $480.00 * 83.50
+  PYPL: 5177.00,        // $62.00 * 83.50
+  JPM: 16533.00,        // $198.00 * 83.50
+  BAC: 3256.00,         // $39.00 * 83.50
+  WMT: 5344.00,         // $64.00 * 83.50
+  COST: 67635.00,       // $810.00 * 83.50
+  DIS: 8517.00,         // $102.00 * 83.50
+  NKE: 7849.00,         // $94.00 * 83.50
+  SBUX: 6346.00,        // $76.00 * 83.50
+  XOM: 9686.00,         // $116.00 * 83.50
+  CVX: 13026.00,        // $156.00 * 83.50
+  KO: 5177.00,          // $62.00 * 83.50
+  PEP: 14195.00,        // $170.00 * 83.50
+  LLY: 67635.00,        // $810.00 * 83.50
+  JNJ: 12191.00,        // $146.00 * 83.50
+  MRK: 10437.00,        // $125.00 * 83.50
+  PFE: 2338.00,         // $28.00 * 83.50
 };
 
 /**

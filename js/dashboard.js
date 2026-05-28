@@ -19,19 +19,19 @@ const SECTORS = [
 
 // Simulated Top Gainers / Losers
 const GAINERS = [
-  { symbol: 'NVDA', price: '₹1,064.20', gain: '+4.85%' },
+  { symbol: 'NVDA', price: '₹78,500.00', gain: '+4.85%' },
   { symbol: 'RELIANCE.NS', price: '₹2,910.15', gain: '+2.24%' },
   { symbol: 'IREDA.NS', price: '₹188.40', gain: '+1.98%' },
-  { symbol: 'TSLA', price: '₹178.20', gain: '+1.54%' },
-  { symbol: 'AMD', price: '₹164.50', gain: '+1.22%' }
+  { symbol: 'TSLA', price: '₹14,780.00', gain: '+1.54%' },
+  { symbol: 'AMD', price: '₹13,527.00', gain: '+1.22%' }
 ];
 
 const LOSERS = [
   { symbol: 'YESBANK.NS', price: '₹21.40', loss: '-3.12%' },
-  { symbol: 'NFLX', price: '₹612.40', loss: '-2.42%' },
-  { symbol: 'META', price: '₹465.10', loss: '-1.85%' },
-  { symbol: 'AMZN', price: '₹179.40', loss: '-1.40%' },
-  { symbol: 'AAPL', price: '₹189.84', loss: '-0.82%' }
+  { symbol: 'NFLX', price: '₹52,100.00', loss: '-2.42%' },
+  { symbol: 'META', price: '₹39,660.00', loss: '-1.85%' },
+  { symbol: 'AMZN', price: '₹15,030.00', loss: '-1.40%' },
+  { symbol: 'AAPL', price: '₹15,364.00', loss: '-0.82%' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
