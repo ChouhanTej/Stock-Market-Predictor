@@ -4,8 +4,8 @@
  * Emits browser notifications when conditions are met.
  */
 
-import { state, loadStock, showToast } from './app.js?v=20250528b';
-import { getSentiment } from './sentiment.js?v=20250528b';
+import { state, loadStock, showToast } from './app.js';
+import { getSentiment } from './sentiment.js';
 
 // Local storage key
 const WATCHLIST_KEY = 'smai_watchlist';

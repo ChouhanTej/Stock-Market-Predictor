@@ -11,6 +11,12 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
   <link rel="stylesheet" href="index.css?v=20250528b">
   <script type="text/javascript" src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <script>
+    // Apply saved theme before first paint to prevent flash
+    if (localStorage.getItem('smai_theme') === 'light') {
+      document.documentElement.classList.add('light-mode-early');
+    }
+  </script>
 </head>
 <body>
 
@@ -372,25 +378,28 @@
   <script type="module" src="js/app.js?v=20250528b"></script>
   <script type="module" src="js/watchlist.js?v=20250528b"></script>
   <script type="module" src="js/chatbot.js?v=20250528b"></script>
-  <script type="module">
-    const toggleBtn = document.getElementById('theme-toggle');
-    const themeLabel = document.querySelector('.theme-label');
+  <script>
+    // Theme toggle — plain script, runs immediately after DOM is parsed
+    (function() {
+      var toggleBtn = document.getElementById('theme-toggle');
+      var themeLabel = document.querySelector('.theme-label');
+      if (!toggleBtn) return;
 
-    function applyTheme(mode) {
-      const isLight = mode === 'light';
-      document.body.classList.toggle('light-mode', isLight);
-      toggleBtn.classList.toggle('active', isLight);
-      if (themeLabel) themeLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
-    }
+      function applyTheme(mode) {
+        var isLight = mode === 'light';
+        document.body.classList.toggle('light-mode', isLight);
+        toggleBtn.classList.toggle('active', isLight);
+        if (themeLabel) themeLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+      }
 
-    // Apply saved preference
-    applyTheme(localStorage.getItem('theme') || 'dark');
+      applyTheme(localStorage.getItem('smai_theme') || 'dark');
 
-    toggleBtn.addEventListener('click', () => {
-      const nowLight = !document.body.classList.contains('light-mode');
-      applyTheme(nowLight ? 'light' : 'dark');
-      localStorage.setItem('theme', nowLight ? 'light' : 'dark');
-    });
+      toggleBtn.addEventListener('click', function() {
+        var nowLight = !document.body.classList.contains('light-mode');
+        applyTheme(nowLight ? 'light' : 'dark');
+        localStorage.setItem('smai_theme', nowLight ? 'light' : 'dark');
+      });
+    })();
   </script>
 </body>
 </html>
