@@ -17,8 +17,8 @@
  * is the confidence.
  */
 
-import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js';
-import { detectAllPatterns } from './patterns.js';
+import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js?v=20250528b';
+import { detectAllPatterns } from './patterns.js?v=20250528b';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

@@ -3,12 +3,12 @@
  * Orchestrates all modules: API, Chart, Indicators, Patterns, Predictor
  */
 
-import { searchSymbols, isValidSymbol, fetchStockData, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
-import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js';
-import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js';
-import { detectAllPatterns, detectSupportResistance } from './patterns.js';
-import { predict } from './predictor.js';
-import { getSentiment } from './sentiment.js';
+import { searchSymbols, isValidSymbol, fetchStockData, generateDemoData, filterByTimeframe, getStockMeta } from './api.js?v=20250528b';
+import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js?v=20250528b';
+import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js?v=20250528b';
+import { detectAllPatterns, detectSupportResistance } from './patterns.js?v=20250528b';
+import { predict } from './predictor.js?v=20250528b';
+import { getSentiment } from './sentiment.js?v=20250528b';
 
 /* ======================================
    STATE

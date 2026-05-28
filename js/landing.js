@@ -3,17 +3,20 @@
  * @description Controls the landing page particle chart animations, scrolling stock ticker strip, and monthly/annual toggles.
  */
 
+// All prices in INR -- US stocks converted at Rs.84.50/USD (May 2025)
 const TICKER_ITEMS = [
-  { symbol: 'AAPL', price: 189.84, change: -0.82 },
-  { symbol: 'TSLA', price: 178.20, change: 1.54 },
-  { symbol: 'NVDA', price: 1064.20, change: 4.85 },
-  { symbol: 'RELIANCE.NS', price: 2910.15, change: 2.24 },
-  { symbol: 'TCS.NS', price: 3842.10, change: 0.82 },
-  { symbol: 'IREDA.NS', price: 188.40, change: 1.98 },
-  { symbol: 'YESBANK.NS', price: 21.40, change: -3.12 },
-  { symbol: 'MSFT', price: 420.55, change: 1.10 },
-  { symbol: 'GOOGL', price: 175.40, change: 0.45 },
-  { symbol: 'AMZN', price: 179.40, change: -1.40 }
+  { symbol: 'AAPL',         price: 17238.00,  change: -0.82 },  // $204.00 * 84.50
+  { symbol: 'TSLA',         price: 27083.00,  change:  3.92 },  // $320.63 * 84.50
+  { symbol: 'NVDA',         price: 112388.00, change:  4.85 },  // $1330.00 * 84.50
+  { symbol: 'RELIANCE.NS',  price: 1408.00,   change:  0.64 },
+  { symbol: 'TCS.NS',       price: 3204.00,   change:  0.82 },
+  { symbol: 'HDFCBANK.NS',  price: 1911.00,   change: -0.35 },
+  { symbol: 'BAJFINANCE.NS',price: 9085.00,   change:  2.24 },
+  { symbol: 'MSFT',         price: 37153.00,  change:  1.10 },  // $439.75 * 84.50
+  { symbol: 'GOOGL',        price: 14364.00,  change:  0.45 },  // $169.99 * 84.50
+  { symbol: 'INFY.NS',      price: 1591.00,   change:  1.12 },
+  { symbol: 'YESBANK.NS',   price: 18.50,     change: -3.12 },
+  { symbol: 'META',         price: 53753.00,  change:  1.54 },  // $636.13 * 84.50
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
