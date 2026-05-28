@@ -255,14 +255,11 @@ export function generateDemoData(symbol, days = 365) {
 
   // Base parameters
   const upperSymbol = symbol.toUpperCase();
-  const startPrice = REAL_WORLD_PRICES[upperSymbol] || (80 + rng() * 200);
+  const targetPrice = REAL_WORLD_PRICES[upperSymbol] || (500 + rng() * 2000);
   const drift = (rng() - 0.45) * 0.0008; // slight upward bias
   const volatility = 0.012 + rng() * 0.02; // 1.2% - 3.2% daily vol
-  const meanReversion = 0.002;
   const trendStrength = 0.0003;
 
-  const data = [];
-  let price = startPrice;
   const baseVolume = 5000000 + Math.floor(rng() * 30000000);
 
   // Create a longer-term trend cycle
@@ -273,11 +270,44 @@ export function generateDemoData(symbol, days = 365) {
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - days);
 
-  let currentDate = new Date(startDate);
-
   // Occasionally inject patterns
   const patternStart = Math.floor(days * 0.5 + rng() * days * 0.3);
   const patternType = Math.floor(rng() * 4); // 0: H&S, 1: double top, 2: triangle, 3: none
+
+  // Pass 1: Simulate raw log-returns starting from 1.0 (normalised)
+  // This gives us the shape of the price path; we rescale to targetPrice at the end
+  const rawCloses = [];
+  let rawPrice = 1.0;
+
+  for (let i = 0; i < days; i++) {
+    const trendCycle = Math.sin((2 * Math.PI * i) / trendPeriod) * trendAmplitude;
+    const logReturn = drift + trendCycle + trendStrength * Math.sin(i / 30) +
+      volatility * gaussianRandom(rng);
+
+    let patternMod = 0;
+    if (patternType < 3 && i >= patternStart && i < patternStart + 40) {
+      const phase = (i - patternStart) / 40;
+      if (patternType === 0) {
+        patternMod = Math.sin(phase * Math.PI * 3) * 0.008 * (1 - phase);
+      } else if (patternType === 1) {
+        patternMod = Math.sin(phase * Math.PI * 4) * 0.006;
+      } else {
+        patternMod = Math.sin(phase * Math.PI * 6) * 0.005 * (1 - phase);
+      }
+    }
+
+    rawPrice = rawPrice * Math.exp(logReturn + patternMod);
+    if (rawPrice < 0.001) rawPrice = 0.001;
+    rawCloses.push(rawPrice);
+  }
+
+  // Rescale so the LAST close lands exactly on targetPrice (today's real price)
+  const finalRaw = rawCloses[rawCloses.length - 1];
+  const scaleFactor = targetPrice / finalRaw;
+
+  // Pass 2: Build OHLC data using scaled prices
+  const data = [];
+  let currentDate = new Date(startDate);
 
   for (let i = 0; i < days; i++) {
     // Skip weekends
@@ -286,43 +316,15 @@ export function generateDemoData(symbol, days = 365) {
     }
 
     const dateStr = currentDate.toISOString().split('T')[0];
+    const close = rawCloses[i] * scaleFactor;
 
-    // Trend component (sinusoidal)
-    const trendCycle = Math.sin((2 * Math.PI * i) / trendPeriod) * trendAmplitude;
+    // Percentage-based intraday spread -- works at any price level
+    const spreadPct = volatility * 1.5;
+    const open = close * (1 + (rng() - 0.5) * volatility * 0.5);
+    const high = Math.max(open, close) * (1 + rng() * spreadPct);
+    const low  = Math.min(open, close) * (1 - rng() * spreadPct);
 
-    // Mean reversion to moving average (simulated)
-    const logReturn = drift + trendCycle + trendStrength * Math.sin(i / 30) +
-      volatility * gaussianRandom(rng);
-
-    // Optional: inject pattern behavior
-    let patternMod = 0;
-    if (patternType < 3 && i >= patternStart && i < patternStart + 40) {
-      const phase = (i - patternStart) / 40;
-      if (patternType === 0) {
-        // Head and shoulders: up, higher up, down
-        patternMod = Math.sin(phase * Math.PI * 3) * 0.008 * (1 - phase);
-      } else if (patternType === 1) {
-        // Double top: up, down, up, down
-        patternMod = Math.sin(phase * Math.PI * 4) * 0.006;
-      } else {
-        // Triangle: converging
-        patternMod = Math.sin(phase * Math.PI * 6) * 0.005 * (1 - phase);
-      }
-    }
-
-    price = price * Math.exp(logReturn + patternMod);
-
-    // Ensure price stays above minimum only — no upper cap to preserve real-world pricing
-    if (price < 0.5) price = 0.5 + rng() * 1;
-
-    // Generate OHLC from close using percentage-based spread (works for any price level)
-    const spreadPct = volatility * 1.5; // intraday spread as % of price
-    const open = price * (1 + (rng() - 0.5) * volatility * 0.5);
-    const high = Math.max(open, price) * (1 + rng() * spreadPct);
-    const low = Math.min(open, price) * (1 - rng() * spreadPct);
-    const close = price;
-
-    // Volume with some randomness and volume spikes
+    // Volume with randomness and occasional spikes
     const volumeMultiplier = 0.5 + rng() * 1.5;
     const volumeSpike = rng() > 0.93 ? 2 + rng() * 3 : 1;
     const volume = Math.floor(baseVolume * volumeMultiplier * volumeSpike);
@@ -331,7 +333,7 @@ export function generateDemoData(symbol, days = 365) {
       time: dateStr,
       open: roundPrice(open),
       high: roundPrice(high),
-      low: roundPrice(Math.max(low, 0.5)),
+      low: roundPrice(Math.max(low, 0.01)),
       close: roundPrice(close),
       volume,
     });
