@@ -2571,42 +2571,7 @@ body::before {
   border-top: 1px solid var(--glass-border);
 }
 
-.sidebar-user {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background var(--duration-fast);
-}
 
-.sidebar-user:hover { background: rgba(255, 255, 255, 0.04); }
-
-.sidebar-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: var(--fw-bold);
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.sidebar-user-info .name {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--text-primary);
-}
-
-.sidebar-user-info .plan {
-  font-size: var(--fs-xs);
-  color: var(--accent-cyan);
-}
 
 .main-content {
   flex: 1;
