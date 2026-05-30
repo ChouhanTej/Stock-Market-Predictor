@@ -224,7 +224,6 @@ function closeSearchDropdown() {
 }
 
 async function selectSymbol(symbol, name) {
-  state.symbol = symbol;
   state.symbolName = name || symbol;
   dom.searchInput.value = '';
   await loadStock(symbol);
@@ -235,6 +234,10 @@ async function selectSymbol(symbol, name) {
    ====================================== */
 export async function loadStock(symbol) {
   if (state.loading) return;
+
+  // Always sync state.symbol first so that every subsequent render
+  // (status bar, real-time interval, etc.) uses the correct ticker.
+  state.symbol = symbol;
   state.loading = true;
   showLoading(true);
 
