@@ -3,7 +3,7 @@
  * Orchestrates all modules: API, Chart, Indicators, Patterns, Predictor
  */
 
-import { searchSymbols, isValidSymbol, fetchStockData, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
+import { searchSymbols, isValidSymbol, fetchStockData, fetchLivePrice, warmLivePrices, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
 import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js';
 import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js';
 import { detectAllPatterns, detectSupportResistance } from './patterns.js';
@@ -104,6 +104,12 @@ export async function init() {
   }
 
   await loadStock(state.symbol);
+
+  // Warm live prices for the most common symbols in the background so
+  // the next time the user switches stocks the price is already fresh.
+  const TOP_SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA',
+    'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'SBIN.NS'];
+  warmLivePrices(TOP_SYMBOLS).catch(() => {}); // fire-and-forget, never throws
 }
 
 /* ======================================
@@ -242,7 +248,10 @@ export async function loadStock(symbol) {
         showLoading(false);
         return;
       }
-      data = generateDemoData(symbol, 500);
+      // Fetch a live price to anchor the demo simulation at today's real value.
+      // This is non-blocking — if the network call fails we fall back silently.
+      const livePrice = await fetchLivePrice(symbol).catch(() => null);
+      data = generateDemoData(symbol, 500, livePrice);
       showToast(`Demo data loaded for ${symbol}`, 'info');
     } else {
       try {

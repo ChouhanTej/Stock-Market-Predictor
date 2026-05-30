@@ -179,8 +179,13 @@ export async function fetchStockData(symbol, apiKey, outputSize = 'full') {
   }
 }
 
-const REAL_WORLD_PRICES = {
-  // Indian Stocks Reference Prices (NSE values — May 2025)
+/**
+ * Fallback reference prices (INR) used when live fetch fails.
+ * Indian stocks: NSE values. US stocks: USD × 84.50 (May 2025 baseline).
+ * These are only ever used as a last-resort anchor for demo data generation.
+ */
+const FALLBACK_PRICES = {
+  // Indian Stocks — NSE (INR)
   'RELIANCE.NS': 1408.00,
   'TCS.NS': 3204.00,
   'HDFCBANK.NS': 1911.00,
@@ -207,39 +212,139 @@ const REAL_WORLD_PRICES = {
   'JIOFIN.NS': 280.00,
   'IREDA.NS': 163.00,
   'YESBANK.NS': 18.50,
-
-  // US Stocks — USD prices (May 2025) converted to INR at 84.50/USD
-  AAPL: 17238.00,       // $204.00 * 84.50
-  MSFT: 37153.00,       // $439.75 * 84.50
-  GOOGL: 14364.00,      // $169.99 * 84.50
-  AMZN: 16645.00,       // $197.00 * 84.50
-  TSLA: 27083.00,       // $320.63 * 84.50
-  NVDA: 112388.00,      // $1330.00 * 84.50
-  META: 53753.00,       // $636.13 * 84.50
-  NFLX: 103190.00,      // $1221.18 * 84.50
-  AMD: 11432.00,        // $135.29 * 84.50
-  INTC: 1868.00,        // $22.11 * 84.50
-  QCOM: 15818.00,       // $187.19 * 84.50
-  AVGO: 182900.00,      // $2164.50 * 84.50
-  CRM: 28458.00,        // $336.78 * 84.50
-  ADBE: 36380.00,       // $430.53 * 84.50
-  PYPL: 6671.00,        // $78.94 * 84.50
-  JPM: 18534.00,        // $219.34 * 84.50
-  BAC: 3494.00,         // $41.35 * 84.50
-  WMT: 9775.00,         // $115.68 * 84.50
-  COST: 105625.00,      // $1250.00 * 84.50
-  DIS: 9853.00,         // $116.60 * 84.50
-  NKE: 6248.00,         // $73.94 * 84.50
-  SBUX: 6655.00,        // $78.76 * 84.50
-  XOM: 9393.00,         // $111.16 * 84.50
-  CVX: 13018.00,        // $154.06 * 84.50
-  KO: 5753.00,          // $68.08 * 84.50
-  PEP: 12784.00,        // $151.29 * 84.50
-  LLY: 71774.00,        // $849.40 * 84.50
-  JNJ: 13520.00,        // $159.99 * 84.50
-  MRK: 8271.00,         // $97.88 * 84.50
-  PFE: 2396.00,         // $28.36 * 84.50
+  // US Stocks — USD prices converted to INR at 84.50/USD
+  AAPL: 17238.00,
+  MSFT: 37153.00,
+  GOOGL: 14364.00,
+  AMZN: 16645.00,
+  TSLA: 27083.00,
+  NVDA: 112388.00,
+  META: 53753.00,
+  NFLX: 103190.00,
+  AMD: 11432.00,
+  INTC: 1868.00,
+  QCOM: 15818.00,
+  AVGO: 182900.00,
+  CRM: 28458.00,
+  ADBE: 36380.00,
+  PYPL: 6671.00,
+  JPM: 18534.00,
+  BAC: 3494.00,
+  WMT: 9775.00,
+  COST: 105625.00,
+  DIS: 9853.00,
+  NKE: 6248.00,
+  SBUX: 6655.00,
+  XOM: 9393.00,
+  CVX: 13018.00,
+  KO: 5753.00,
+  PEP: 12784.00,
+  LLY: 71774.00,
+  JNJ: 13520.00,
+  MRK: 8271.00,
+  PFE: 2396.00,
 };
+
+/** Runtime price cache — populated by fetchLivePrice(), lives for the session */
+const livePriceCache = new Map();
+
+/**
+ * Fetch the current market price for a symbol (INR).
+ *
+ * Priority order:
+ *  1. In-memory cache (already fetched this session)
+ *  2. sessionStorage cache (survived a page reload this session)
+ *  3. Alpha Vantage GLOBAL_QUOTE (if the user's API key is stored)
+ *  4. Yahoo Finance via corsproxy.io (no key required)
+ *  5. FALLBACK_PRICES static snapshot
+ *
+ * @param {string} symbol - e.g. 'AAPL', 'RELIANCE.NS'
+ * @param {string} [apiKey] - Alpha Vantage key (optional)
+ * @returns {Promise<number>} Price in INR
+ */
+export async function fetchLivePrice(symbol, apiKey) {
+  const upperSymbol = symbol.toUpperCase();
+  const sessionKey = `smai_price_${upperSymbol}`;
+  const USD_TO_INR = 84.50;
+
+  // 1. In-memory hit
+  if (livePriceCache.has(upperSymbol)) {
+    return livePriceCache.get(upperSymbol);
+  }
+
+  // 2. sessionStorage hit (valid for up to 15 minutes)
+  try {
+    const stored = sessionStorage.getItem(sessionKey);
+    if (stored) {
+      const { price, ts } = JSON.parse(stored);
+      if (Date.now() - ts < 15 * 60 * 1000) {
+        livePriceCache.set(upperSymbol, price);
+        return price;
+      }
+    }
+  } catch (_) { /* ignore storage errors */ }
+
+  const isUS = !upperSymbol.endsWith('.NS');
+
+  // Helper: persist a successfully fetched price
+  const save = (price) => {
+    livePriceCache.set(upperSymbol, price);
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({ price, ts: Date.now() }));
+    } catch (_) { /* ignore quota errors */ }
+    return price;
+  };
+
+  // 3. Alpha Vantage GLOBAL_QUOTE (needs a key but is the most reliable)
+  const avKey = apiKey || localStorage.getItem('av_api_key');
+  if (avKey) {
+    try {
+      const url = `${API_BASE}?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(avKey)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        const rawPrice = parseFloat(json['Global Quote']?.['05. price']);
+        if (!isNaN(rawPrice) && rawPrice > 0) {
+          const priceINR = isUS ? parseFloat((rawPrice * USD_TO_INR).toFixed(2)) : rawPrice;
+          return save(priceINR);
+        }
+      }
+    } catch (_) { /* fall through */ }
+  }
+
+  // 4. Yahoo Finance via corsproxy.io (no key required)
+  // Yahoo uses the same ticker symbols for US stocks; Indian NSE stocks use '.NS' suffix.
+  try {
+    const yhSymbol = encodeURIComponent(symbol);
+    const yhUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yhSymbol}?interval=1d&range=1d`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(yhUrl)}`;
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+    if (res.ok) {
+      const json = await res.json();
+      const meta = json?.chart?.result?.[0]?.meta;
+      const rawPrice = meta?.regularMarketPrice ?? meta?.previousClose;
+      if (rawPrice && rawPrice > 0) {
+        // Yahoo returns prices in the local currency of the exchange;
+        // NSE stocks come in INR already; US stocks come in USD.
+        const priceINR = isUS ? parseFloat((rawPrice * USD_TO_INR).toFixed(2)) : rawPrice;
+        return save(priceINR);
+      }
+    }
+  } catch (_) { /* fall through to static fallback */ }
+
+  // 5. Static fallback — stale but better than nothing
+  return FALLBACK_PRICES[upperSymbol] ?? (500 + symbolHash(upperSymbol) % 2000);
+}
+
+/**
+ * Pre-warm the live price for multiple symbols in the background.
+ * Called once at app startup so demo data already has fresh anchors.
+ * @param {string[]} symbols
+ */
+export async function warmLivePrices(symbols) {
+  // Fire concurrently but don't block the caller or throw
+  await Promise.allSettled(symbols.map(s => fetchLivePrice(s)));
+}
 
 /**
  * Generate realistic demo stock data
@@ -248,14 +353,16 @@ const REAL_WORLD_PRICES = {
  * @param {number} days
  * @returns {Array<{time: string, open: number, high: number, low: number, close: number, volume: number}>}
  */
-export function generateDemoData(symbol, days = 365) {
+export function generateDemoData(symbol, days = 365, overridePrice = null) {
   // Seed parameters based on symbol for consistency
   const seedVal = symbolHash(symbol);
   const rng = seededRandom(seedVal);
 
   // Base parameters
+  // overridePrice is set when the caller has already resolved a live price.
+  // Fall back to the static snapshot so offline mode still works.
   const upperSymbol = symbol.toUpperCase();
-  const targetPrice = REAL_WORLD_PRICES[upperSymbol] || (500 + rng() * 2000);
+  const targetPrice = overridePrice ?? FALLBACK_PRICES[upperSymbol] ?? (500 + rng() * 2000);
   const drift = (rng() - 0.45) * 0.0008; // slight upward bias
   const volatility = 0.012 + rng() * 0.02; // 1.2% - 3.2% daily vol
   const trendStrength = 0.0003;
@@ -456,6 +563,8 @@ export default {
   searchSymbols,
   isValidSymbol,
   fetchStockData,
+  fetchLivePrice,
+  warmLivePrices,
   generateDemoData,
   filterByTimeframe,
   getStockMeta,
