@@ -238,6 +238,10 @@ export async function loadStock(symbol) {
   // Always sync state.symbol first so that every subsequent render
   // (status bar, real-time interval, etc.) uses the correct ticker.
   state.symbol = symbol;
+
+  // Notify other modules (e.g. watchlist) that the active symbol changed
+  // so they can update their highlighted "tab" without a full re-render.
+  document.dispatchEvent(new CustomEvent('smai:symbolChange', { detail: { symbol } }));
   state.loading = true;
   showLoading(true);
 

@@ -40,6 +40,15 @@ function initWatchlist() {
     checkAlerts(symbol, price, indicators?.rsi?.latest);
   });
 
+  // When the active stock changes, immediately update the highlighted watchlist tab.
+  // This fires before the data even loads, so the UI feels instant.
+  document.addEventListener('smai:symbolChange', (e) => {
+    const activeSymbol = e.detail.symbol;
+    document.querySelectorAll('.watchlist-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.symbol === activeSymbol);
+    });
+  });
+
   // Wire add button
   const addBtn = document.getElementById('btn-add-watchlist');
   if (addBtn) {
