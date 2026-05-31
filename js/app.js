@@ -14,8 +14,8 @@ import { getSentiment } from './sentiment.js';
    STATE
    ====================================== */
 export const state = {
-  symbol: 'AAPL',
-  symbolName: 'Apple Inc.',
+  symbol: localStorage.getItem('smai_last_symbol') || 'AAPL',
+  symbolName: localStorage.getItem('smai_last_symbol_name') || 'Apple Inc.',
   timeframe: '1Y',
   apiKey: localStorage.getItem('av_api_key') || '',
   demoMode: true,
@@ -225,6 +225,7 @@ function closeSearchDropdown() {
 
 async function selectSymbol(symbol, name) {
   state.symbolName = name || symbol;
+  localStorage.setItem('smai_last_symbol_name', state.symbolName);
   dom.searchInput.value = '';
   await loadStock(symbol);
 }
@@ -238,6 +239,13 @@ export async function loadStock(symbol) {
   // Always sync state.symbol first so that every subsequent render
   // (status bar, real-time interval, etc.) uses the correct ticker.
   state.symbol = symbol;
+
+  // Persist so the next page load restores this stock, not AAPL.
+  localStorage.setItem('smai_last_symbol', symbol);
+
+  // Update the symbol display immediately — don't wait for the async fetch.
+  // This kills the flicker where the old/AAPL ticker shows during loading.
+  if (dom.symbolDisplay) dom.symbolDisplay.textContent = symbol;
 
   // Notify other modules (e.g. watchlist) that the active symbol changed
   // so they can update their highlighted "tab" without a full re-render.
