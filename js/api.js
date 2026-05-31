@@ -318,7 +318,7 @@ export async function fetchLivePrice(symbol, apiKey) {
     const yhSymbol = encodeURIComponent(symbol);
     const yhUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yhSymbol}?interval=1d&range=1d`;
     const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(yhUrl)}`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const json = await res.json();
       const meta = json?.chart?.result?.[0]?.meta;

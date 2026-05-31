@@ -105,11 +105,12 @@ export async function init() {
 
   await loadStock(state.symbol);
 
-  // Warm live prices for the most common symbols in the background so
-  // the next time the user switches stocks the price is already fresh.
-  const TOP_SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA',
-    'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'SBIN.NS'];
-  warmLivePrices(TOP_SYMBOLS).catch(() => {}); // fire-and-forget, never throws
+  // Warm live prices for common symbols in the background.
+  // Delayed 3s so it doesn't compete with the initial loadStock network call.
+  setTimeout(() => {
+    const TOP_SYMBOLS = ['AAPL', 'TSLA', 'RELIANCE.NS', 'INFY.NS', 'NVDA'];
+    warmLivePrices(TOP_SYMBOLS).catch(() => {});
+  }, 3000);
 }
 
 /* ======================================
@@ -905,32 +906,39 @@ function updateNewsSentiment(symbol) {
 /**
  * Simulates real-time stock price fluctuations in background loops
  */
+let realTimeTickCount = 0;
 function startRealTimeSimulation() {
   if (realTimeInterval) clearInterval(realTimeInterval);
-  
+  realTimeTickCount = 0;
+
   realTimeInterval = setInterval(() => {
     if (state.loading || !state.fullData || state.fullData.length === 0) return;
-    
+
     const latestIndex = state.fullData.length - 1;
     const latestBar = state.fullData[latestIndex];
-    
+
     // Vary closing price +/- 0.15% random walk
     const changePercent = (Math.random() - 0.5) * 0.003;
     latestBar.close = parseFloat((latestBar.close * (1 + changePercent)).toFixed(2));
-    
+
     if (latestBar.close > latestBar.high) latestBar.high = latestBar.close;
-    if (latestBar.close < latestBar.low) latestBar.low = latestBar.close;
-    
+    if (latestBar.close < latestBar.low)  latestBar.low  = latestBar.close;
+
     const filteredLatestIndex = state.filteredData.length - 1;
     if (filteredLatestIndex >= 0) {
       state.filteredData[filteredLatestIndex] = latestBar;
     }
-    
-    // Re-render chart, status bars, and execute technical analysis & alert checks
+
+    // Always update chart and price display (lightweight)
     updateChart();
     updateStatusBar();
-    runAnalysis();
-  }, 4000); // 4-second interval for real-time responsiveness
+
+    // Full indicator/pattern reanalysis is expensive — only run every 3rd tick (every 12s)
+    realTimeTickCount++;
+    if (realTimeTickCount % 3 === 0) {
+      runAnalysis();
+    }
+  }, 4000);
 }
 
 /* ======================================

@@ -101,6 +101,9 @@
       <div class="status-bar" id="status-bar">
         <div class="stock-info">
           <span class="stock-symbol-display" id="stock-symbol">AAPL</span>
+          <script>/* Prevent FOUC: set symbol from localStorage before ES modules load */
+            (function(){var s=localStorage.getItem('smai_last_symbol');if(s)document.getElementById('stock-symbol').textContent=s;})();
+          </script>
           <div class="stock-price-display">
             <span class="current-price" id="current-price">₹0.00</span>
             <span class="price-change positive" id="price-change">+0.00 (0.00%)</span>
