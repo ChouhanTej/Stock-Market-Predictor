@@ -302,6 +302,89 @@ function analyzeTrends(analysis, lastClose) {
   };
 }
 
+/**
+ * Computes dynamic quantitative price forecasts for specific time ranges
+ * based on historical CAGR, annual volatility, technical consensus score, and volume boost.
+ */
+function computeTimeframeForecasts(data, analysis, weightedSum, volumeFactor, lastClose) {
+  const firstClose = data[0]?.close || lastClose;
+  const N = data.length;
+  const years = N / 252;
+  
+  let cagr = 0.08; // default to 8% standard index rate
+  if (years > 0.1 && firstClose > 0) {
+    const ratio = lastClose / firstClose;
+    if (ratio > 0) {
+      cagr = Math.pow(ratio, 1 / years) - 1;
+    }
+  }
+  cagr = Math.max(-0.35, Math.min(0.50, cagr));
+
+  // Compute daily return standard deviation to calculate annual volatility
+  const dailyReturns = [];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i - 1].close > 0) {
+      dailyReturns.push((data[i].close - data[i - 1].close) / data[i - 1].close);
+    }
+  }
+  const meanReturn = dailyReturns.length > 0 ? dailyReturns.reduce((s, r) => s + r, 0) / dailyReturns.length : 0;
+  const variance = dailyReturns.length > 0 ? dailyReturns.reduce((s, r) => s + Math.pow(r - meanReturn, 2), 0) / dailyReturns.length : 0;
+  const dailyVol = Math.sqrt(variance);
+  const annualVol = Math.max(0.1, dailyVol * Math.sqrt(252)); // default to min 10% vol
+
+  const forecast = (days, timeLabel) => {
+    const t = days / 252;
+    const momentumWeight = Math.exp(-t * 2); // decays over time
+    const driftWeight = 1 - momentumWeight;
+
+    const momentumRet = weightedSum * annualVol * Math.sqrt(t);
+    const driftRet = cagr * t;
+    let projectedReturn = (momentumRet * momentumWeight) + (driftRet * driftWeight);
+
+    // Bounded adjustments
+    if (timeLabel === '1W') {
+      projectedReturn = Math.max(-0.15, Math.min(0.15, projectedReturn));
+    } else if (timeLabel === '1M') {
+      projectedReturn = Math.max(-0.3, Math.min(0.3, projectedReturn));
+    } else if (timeLabel === '1Y') {
+      projectedReturn = Math.max(-0.6, Math.min(1.2, projectedReturn));
+    } else if (timeLabel === '10Y') {
+      projectedReturn = Math.max(-0.9, Math.min(8.0, projectedReturn));
+    }
+
+    // Direction label
+    let dir = 'neutral';
+    if (projectedReturn > 0.025 && (timeLabel === '1W' || timeLabel === '1M')) dir = 'bullish';
+    else if (projectedReturn < -0.025 && (timeLabel === '1W' || timeLabel === '1M')) dir = 'bearish';
+    else if (projectedReturn > 0.08 && timeLabel === '1Y') dir = 'bullish';
+    else if (projectedReturn < -0.08 && timeLabel === '1Y') dir = 'bearish';
+    else if (projectedReturn > 0.50 && timeLabel === '10Y') dir = 'strong-bullish';
+    else if (projectedReturn > 0.15 && timeLabel === '10Y') dir = 'bullish';
+    else if (projectedReturn < -0.15 && timeLabel === '10Y') dir = 'bearish';
+
+    // Confidence: decays slightly for long-term due to uncertainty
+    const baseConf = Math.abs(weightedSum) * momentumWeight + 0.65 * driftWeight;
+    const confidenceVal = Math.max(0.45, Math.min(0.95, baseConf * volumeFactor));
+
+    const sign = projectedReturn > 0 ? '+' : '';
+    const percentStr = `${sign}${(projectedReturn * 100).toFixed(1)}%`;
+
+    return {
+      range: timeLabel,
+      direction: dir,
+      move: percentStr,
+      confidence: `${Math.round(confidenceVal * 100)}%`
+    };
+  };
+
+  return [
+    forecast(5, '1W'),
+    forecast(21, '1M'),
+    forecast(252, '1Y'),
+    forecast(2520, '10Y')
+  ];
+}
+
 // ─── Main Prediction ────────────────────────────────────────────────────────
 
 /**
@@ -331,6 +414,7 @@ export function predict(data) {
         mediumTerm: { direction: 'neutral', strength: 0 },
         longTerm: { direction: 'neutral', strength: 0 },
       },
+      timeframePredictions: [],
     };
   }
 
@@ -497,12 +581,15 @@ export function predict(data) {
     patternNote +
     rsiNote;
 
+  const timeframePredictions = computeTimeframeForecasts(data, analysis, weightedSum, volumeFactor, lastClose);
+
   return {
     direction,
     confidence,
     signals,
     summary,
     trendAnalysis,
+    timeframePredictions,
   };
 }
 

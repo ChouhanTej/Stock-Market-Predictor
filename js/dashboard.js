@@ -1,211 +1,171 @@
 /**
  * @module dashboard
- * @description Orchestrates the trading dashboard features, fear & greed canvas gauge, and sector heatmaps.
+ * @description Orchestrates the portfolio dashboard features, sparklines, allocation pie chart, and rebalance simulation.
  */
 
-// Simulated Sector Database
-const SECTORS = [
-  { name: 'Technology', change: 1.84 },
-  { name: 'Financials', change: 0.65 },
-  { name: 'Healthcare', change: -0.42 },
-  { name: 'Energy', change: 1.12 },
-  { name: 'Industrials', change: 0.28 },
-  { name: 'Consumer Defensive', change: -0.15 },
-  { name: 'Utilities', change: -0.84 },
-  { name: 'Real Estate', change: -1.24 },
-  { name: 'Materials', change: 0.45 },
-  { name: 'Communication', change: 2.10 }
-];
-
-// Simulated Top Gainers / Losers
-const GAINERS = [
-  { symbol: 'NVDA', price: '₹1,12,388.00', gain: '+4.85%' },
-  { symbol: 'TSLA', price: '₹27,083.00', gain: '+3.92%' },
-  { symbol: 'BAJFINANCE.NS', price: '₹9,085.00', gain: '+2.24%' },
-  { symbol: 'META', price: '₹53,753.00', gain: '+1.54%' },
-  { symbol: 'BHARTIARTL.NS', price: '₹1,893.00', gain: '+1.22%' }
-];
-
-const LOSERS = [
-  { symbol: 'YESBANK.NS', price: '₹18.50', loss: '-3.12%' },
-  { symbol: 'INTC', price: '₹1,868.00', loss: '-2.42%' },
-  { symbol: 'WIPRO.NS', price: '₹249.00', loss: '-1.85%' },
-  { symbol: 'PFE', price: '₹2,396.00', loss: '-1.40%' },
-  { symbol: 'TATAMOTORS.NS', price: '₹729.00', loss: '-0.82%' }
-];
-
 document.addEventListener('DOMContentLoaded', () => {
-  renderSectorHeatmap();
-  renderGainersLosers();
-  renderFearGreed(64); // Greed value
+  initSparklines();
+  initRebalanceSimulation();
 });
 
 /**
- * Render Sector Heatmap
+ * Renders smooth sparkline charts in the watchlist table
  */
-function renderSectorHeatmap() {
-  const container = document.getElementById('sector-heatmap');
-  if (!container) return;
+function initSparklines() {
+  const assets = [
+    { id: 'sparkline-aapl', color: '#2ecc71', points: [180, 182, 181, 185, 184, 187, 186, 189.42] },
+    { id: 'sparkline-tsla', color: '#e74c3c', points: [260, 255, 252, 256, 248, 245, 240, 242.11] },
+    { id: 'sparkline-msft', color: '#2ecc71', points: [370, 372, 371, 375, 373, 376, 374, 376.51] },
+    { id: 'sparkline-amd',  color: '#2ecc71', points: [135, 137, 136, 140, 138, 142, 141, 145.28] }
+  ];
 
-  container.innerHTML = '';
-  SECTORS.forEach(sec => {
-    const item = document.createElement('div');
-    item.className = 'heatmap-cell';
+  assets.forEach(asset => {
+    const canvas = document.getElementById(asset.id);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = 100;
+    const height = canvas.height = 32;
+
+    // Clear and draw path
+    ctx.clearRect(0, 0, width, height);
+
+    // Calculate scaling
+    const min = Math.min(...asset.points);
+    const max = Math.max(...asset.points);
+    const range = max - min || 1;
+
+    ctx.beginPath();
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    asset.points.forEach((val, index) => {
+      const x = (index / (asset.points.length - 1)) * (width - 6) + 3;
+      const y = height - ((val - min) / range) * (height - 8) - 4;
+
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    // Draw main line
+    ctx.strokeStyle = asset.color;
+    ctx.stroke();
+
+    // Create a smooth gradient fill underneath
+    ctx.lineTo((width - 6) + 3, height);
+    ctx.lineTo(3, height);
+    ctx.closePath();
     
-    // Assign color based on positive or negative performance
-    const isPositive = sec.change >= 0;
-    const absVal = Math.min(Math.abs(sec.change) / 2.5, 1); // Clamp weight
-    
-    let bg = '';
-    if (isPositive) {
-      bg = `rgba(0, 230, 118, ${0.08 + absVal * 0.4})`; // green scaling
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    if (asset.color === '#2ecc71') {
+      grad.addColorStop(0, 'rgba(46, 204, 113, 0.2)');
+      grad.addColorStop(1, 'rgba(46, 204, 113, 0)');
     } else {
-      bg = `rgba(255, 51, 102, ${0.08 + absVal * 0.4})`; // red scaling
+      grad.addColorStop(0, 'rgba(231, 76, 60, 0.2)');
+      grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
     }
-    
-    item.style.backgroundColor = bg;
-
-    item.innerHTML = `
-      <div class="heatmap-label">${sec.name}</div>
-      <div class="heatmap-value" style="color: ${isPositive ? 'var(--accent-green)' : 'var(--accent-magenta)'};">
-        ${isPositive ? '+' : ''}${sec.change.toFixed(2)}%
-      </div>
-    `;
-
-    container.appendChild(item);
+    ctx.fillStyle = grad;
+    ctx.fill();
   });
 }
 
 /**
- * Render Gainers and Losers Tables
+ * Sets up rebalance simulation actions
  */
-function renderGainersLosers() {
-  const gBody = document.getElementById('gainers-table-body');
-  const lBody = document.getElementById('losers-table-body');
+function initRebalanceSimulation() {
+  const btn = document.getElementById('run-rebalance-btn');
+  if (!btn) return;
 
-  if (gBody) {
-    gBody.innerHTML = GAINERS.map(item => `
-      <tr>
-        <td style="font-weight: 600; color: var(--text-primary);">${item.symbol}</td>
-        <td>${item.price}</td>
-        <td style="color: var(--accent-green); font-weight: 600;">${item.gain}</td>
-      </tr>
-    `).join('');
-  }
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    btn.innerHTML = '⚙️ Optimizing Asset Weights...';
+    
+    showToast('Running rebalance simulation... recalibrating asset weights', 'info');
 
-  if (lBody) {
-    lBody.innerHTML = LOSERS.map(item => `
-      <tr>
-        <td style="font-weight: 600; color: var(--text-primary);">${item.symbol}</td>
-        <td>${item.price}</td>
-        <td style="color: var(--accent-magenta); font-weight: 600;">${item.loss}</td>
-      </tr>
-    `).join('');
-  }
+    setTimeout(() => {
+      // Simulate rebalancing weights
+      // New weights: Tech 36.0%, Finance 29.0%, Energy 20.0%, Others 15.0%
+      const newWeights = [
+        { percentage: 36, offset: 0, color: '#9eb5ff', name: 'Technology' },
+        { percentage: 29, offset: -36, color: '#2ecc71', name: 'Finance' },
+        { percentage: 20, offset: -65, color: '#e74c3c', name: 'Energy' },
+        { percentage: 15, offset: -85, color: '#f39c12', name: 'Others' }
+      ];
+
+      // Update Donut Segment Slices
+      const segments = document.querySelectorAll('.pie-segment');
+      newWeights.forEach((w, index) => {
+        if (segments[index]) {
+          segments[index].setAttribute('stroke-dasharray', `${w.percentage} ${100 - w.percentage}`);
+          segments[index].setAttribute('stroke-dashoffset', `${w.offset}`);
+        }
+      });
+
+      // Update Legend Values
+      const legendVals = document.querySelectorAll('.legend-val');
+      newWeights.forEach((w, index) => {
+        if (legendVals[index]) {
+          legendVals[index].textContent = `${w.percentage.toFixed(1)}%`;
+        }
+      });
+
+      // Update Total Investment Card (show visual growth)
+      const investmentVal = document.getElementById('total-investment');
+      if (investmentVal) {
+        investmentVal.textContent = '$144,380.20';
+        investmentVal.style.color = 'var(--bullish-green)';
+        setTimeout(() => {
+          investmentVal.style.color = 'var(--text-main)';
+        }, 1500);
+      }
+
+      // Update Today's P/L
+      const pnlVal = document.getElementById('today-pnl');
+      if (pnlVal) {
+        pnlVal.textContent = '+$2,769.78';
+      }
+
+      // Update Risk score display to show lower risk
+      const riskScore = document.getElementById('risk-score');
+      if (riskScore) {
+        riskScore.textContent = 'LOW';
+        riskScore.style.color = 'var(--bullish-green)';
+      }
+
+      btn.innerHTML = '✓ Portfolio Rebalanced';
+      showToast('Portfolio optimized! Technology allocation reduced to 36%. Risk profile lowered.', 'success');
+
+      // Re-enable button after 5 seconds to run again
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '⚡ Run Rebalance Simulation';
+      }, 5000);
+
+    }, 2000);
+  });
 }
 
 /**
- * Draw Fear & Greed needle indicator on HTML Canvas
+ * Toast notifications for dashboard.html
  */
-function renderFearGreed(value) {
-  const canvas = document.getElementById('fear-greed-canvas');
-  if (!canvas) return;
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
 
-  const ctx = canvas.getContext('2d');
-  const cx = canvas.width / 2;
-  const cy = canvas.height - 15;
-  const radius = 90;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
 
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${message}`;
 
-  // Draw Arc sectors (Fear, Neutral, Greed)
-  // Arc 1: Fear (Red)
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, Math.PI, Math.PI * 1.33);
-  ctx.strokeStyle = '#ff3366';
-  ctx.lineWidth = 14;
-  ctx.lineCap = 'butt';
-  ctx.stroke();
+  container.appendChild(toast);
 
-  // Arc 2: Neutral (Amber)
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, Math.PI * 1.33, Math.PI * 1.66);
-  ctx.strokeStyle = '#ffaa00';
-  ctx.lineWidth = 14;
-  ctx.stroke();
-
-  // Arc 3: Greed (Green)
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, Math.PI * 1.66, Math.PI * 2);
-  ctx.strokeStyle = '#00e676';
-  ctx.lineWidth = 14;
-  ctx.stroke();
-
-  // Draw Arc Track Background glow (thin outer ring)
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius + 12, Math.PI, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Map value (0 - 100) to angle (Math.PI to Math.PI * 2)
-  const angle = Math.PI + (value / 100) * Math.PI;
-
-  // Draw Needle Shadow
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  const shadowX = cx + Math.cos(angle) * (radius - 15);
-  const shadowY = cy + Math.sin(angle) * (radius - 15);
-  ctx.lineTo(shadowX, shadowY + 2);
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // Draw Needle Line
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  const targetX = cx + Math.cos(angle) * (radius - 15);
-  const targetY = cy + Math.sin(angle) * (radius - 15);
-  ctx.lineTo(targetX, targetY);
-  ctx.strokeStyle = '#00d4ff'; // glow cyan needle
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  // Draw Center Hub Inner Circle
-  ctx.beginPath();
-  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-  ctx.fillStyle = '#06090f';
-  ctx.fill();
-  ctx.strokeStyle = '#00d4ff';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  
-  // Set details labels dynamically based on scale
-  const label = document.getElementById('fear-greed-label');
-  const desc = document.getElementById('fear-greed-desc');
-  if (label && desc) {
-    label.textContent = value;
-    if (value < 35) {
-      desc.textContent = 'EXTREME FEAR';
-      desc.style.color = '#ff3366';
-    } else if (value < 45) {
-      desc.textContent = 'FEAR';
-      desc.style.color = '#ff6b6b';
-    } else if (value < 55) {
-      desc.textContent = 'NEUTRAL';
-      desc.style.color = '#ffaa00';
-    } else if (value < 75) {
-      desc.textContent = 'GREED';
-      desc.style.color = '#00e676';
-    } else {
-      desc.textContent = 'EXTREME GREED';
-      desc.style.color = '#00d4ff';
-    }
-  }
-
-  const pointer = document.getElementById('fear-greed-pointer');
-  if (pointer) {
-    pointer.style.left = `${value}%`;
-  }
+  setTimeout(() => {
+    toast.classList.add('toast-exit');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
 }

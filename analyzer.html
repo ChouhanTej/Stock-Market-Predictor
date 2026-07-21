@@ -6,68 +6,70 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SMAI Stock Analyzer — Professional technical stock analyzer powered by AI/ML predictions, sentiment engine, and pattern recognition.">
-  <title>SMAI — Stock Trend Analyzer</title>
+  <meta name="description" content="Share Market AI — Stock Trend Analyzer with technical indicators, AI signals, and pattern recognition.">
+  <title>AI Engine — Stock Trend Analyzer</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
-  <link rel="stylesheet" href="index.css?v=20250528b">
+  <link rel="stylesheet" href="index.css?v=20260712_rev5">
   <script type="text/javascript" src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-  <script>
-    // Apply saved theme before first paint to prevent flash
-    if (localStorage.getItem('smai_theme') === 'light') {
-      document.documentElement.classList.add('light-mode-early');
-    }
-  </script>
 </head>
 <body>
 
-  <!-- ====== MAIN CONTAINER ====== -->
+  <!-- MAIN CONTAINER -->
   <div class="app-layout">
     
-    <!-- ====== SIDEBAR NAV ====== -->
+    <!-- SIDEBAR NAV -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <span class="sidebar-logo-icon">📈</span>
-        <div class="sidebar-logo-text">
-          SMAI
-        </div>
+        <a href="index.html" class="sidebar-logo">
+          <span class="sidebar-logo-icon">✨</span>
+          <div class="sidebar-logo-text">
+            AI Engine
+            <div class="sidebar-logo-sub">V3.4 Active</div>
+          </div>
+        </a>
       </div>
       
       <nav class="sidebar-nav">
-        <a href="index.html" class="sidebar-nav-item">
-          <span class="sidebar-nav-icon">🌐</span>
-          <span class="sidebar-nav-label">Landing Page</span>
-        </a>
-        <a href="dashboard.html" class="sidebar-nav-item">
+        <a href="analyzer.html#overview" class="sidebar-nav-item active">
           <span class="sidebar-nav-icon">📊</span>
           <span class="sidebar-nav-label">Dashboard</span>
         </a>
-        <a href="analyzer.html" class="sidebar-nav-item active">
+        <a href="analyzer.html#technical" class="sidebar-nav-item">
           <span class="sidebar-nav-icon">📈</span>
-          <span class="sidebar-nav-label">Stock Analyzer</span>
+          <span class="sidebar-nav-label">Analytics</span>
+        </a>
+        <a href="dashboard.html" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">💼</span>
+          <span class="sidebar-nav-label">Portfolio</span>
+        </a>
+        <a href="analyzer.html#ai-forecast" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">✨</span>
+          <span class="sidebar-nav-label">AI Signals</span>
         </a>
       </nav>
       
-      <div class="sidebar-footer">
-        <div class="theme-toggle-wrapper" style="padding: var(--sp-2) var(--sp-3); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-xs); color: var(--text-secondary);">
-          <span class="theme-label">Light Mode</span>
-          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Theme">
-            <span class="toggle-circle"></span>
-          </button>
-        </div>
 
+      
+      <div class="sidebar-footer">
+        <a href="#" class="sidebar-footer-item">
+          <span>❓</span> Support
+        </a>
+        <a href="#" class="sidebar-footer-item">
+          <span>🚪</span> Sign Out
+        </a>
       </div>
     </aside>
 
-    <!-- ====== MAIN CONTENT ====== -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
       
-      <!-- ====== HEADER ====== -->
-      <header class="app-header" id="app-header">
+      <!-- HEADER -->
+      <header class="app-header">
         <div class="header-left">
-          <h1 class="page-title">Stock Analyzer</h1>
-          <p class="page-subtitle">Real-time technical metrics & predictive insights</p>
+          <h1 class="page-title">Market Dashboard</h1>
+          <p class="page-subtitle">Real-time technical metrics & AI forecasts</p>
         </div>
-
+        
         <div class="search-container">
           <div class="search-input-wrapper">
             <span class="search-icon">🔍</span>
@@ -75,7 +77,7 @@
               type="text"
               id="search-input"
               class="search-input"
-              placeholder="Search symbol (e.g. AAPL, TSLA, RELIANCE.NS)"
+              placeholder="Search Stock (e.g. $NVDA, AAPL, TSLA)"
               autocomplete="off"
               aria-label="Search stock symbol"
             >
@@ -83,326 +85,623 @@
           <div class="search-dropdown" id="search-dropdown" role="listbox"></div>
         </div>
 
-        <div class="timeframe-selector" role="group" aria-label="Timeframe selection">
-          <button class="timeframe-btn" data-timeframe="1W">1W</button>
-          <button class="timeframe-btn" data-timeframe="1M">1M</button>
-          <button class="timeframe-btn" data-timeframe="3M">3M</button>
-          <button class="timeframe-btn" data-timeframe="6M">6M</button>
-          <button class="timeframe-btn active" data-timeframe="1Y">1Y</button>
-          <button class="timeframe-btn" data-timeframe="ALL">ALL</button>
+        <div class="chart-timeframe-bar" role="group" aria-label="Timeframe selection">
+          <button class="chart-tf-btn timeframe-btn" data-timeframe="1D">1D</button>
+          <button class="chart-tf-btn timeframe-btn" data-timeframe="1W">1W</button>
+          <button class="chart-tf-btn timeframe-btn" data-timeframe="1M">1M</button>
+          <button class="chart-tf-btn timeframe-btn active" data-timeframe="1Y">1Y</button>
+          <button class="chart-tf-btn timeframe-btn" data-timeframe="ALL">ALL</button>
         </div>
-
-        <div class="header-actions">
-          <button class="btn-icon" id="btn-api-key" title="API Settings" aria-label="API key settings">⚙️</button>
+        
+        <div class="header-right">
+          <div class="market-status positive" id="status-market-label">
+            <span class="status-dot"></span> MARKET OPEN
+          </div>
+          <button class="header-icon-btn" aria-label="Notifications">
+            🔔
+          </button>
+          <div class="header-profile">
+            <img class="profile-avatar" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%239eb5ff'/><text x='30' y='60' font-size='30' font-weight='bold' fill='%230b0d13'>AM</text></svg>" alt="Alex Morgan avatar">
+            <div class="profile-info">
+              <span class="profile-name">Alex Morgan</span>
+              <span class="profile-role">Premium Investor</span>
+            </div>
+          </div>
         </div>
       </header>
 
-      <!-- ====== STATUS BAR ====== -->
-      <div class="status-bar" id="status-bar">
-        <div class="stock-info">
-          <span class="stock-symbol-display" id="stock-symbol">AAPL</span>
-          <script>/* Prevent FOUC: set symbol from localStorage before ES modules load */
-            (function(){var s=localStorage.getItem('smai_last_symbol');if(s)document.getElementById('stock-symbol').textContent=s;})();
-          </script>
-          <div class="stock-price-display">
-            <span class="current-price" id="current-price">₹0.00</span>
-            <span class="price-change positive" id="price-change">+0.00 (0.00%)</span>
-          </div>
-        </div>
-        <div class="stock-meta">
-          <div class="meta-item">
-            <span class="meta-label">Open</span>
-            <span class="meta-value" id="meta-open">—</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">High</span>
-            <span class="meta-value" id="meta-high">—</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Low</span>
-            <span class="meta-value" id="meta-low">—</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Avg Volume</span>
-            <span class="meta-value" id="meta-volume">—</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ====== ANALYZER GRID LAYOUT ====== -->
-      <div class="analyzer-grid">
+      <!-- DASHBOARD GRID -->
+      <div class="dashboard-grid" style="padding-top: 24px;">
         
-        <!-- ====== LEFT COLUMN: Chart + Volume ====== -->
-        <div class="grid-col-8">
-          <section class="chart-section" id="chart-section">
-            <div class="chart-panel">
-              <div class="chart-toolbar">
-                <div class="chart-controls">
-                  <span class="chart-controls-label">Overlays</span>
-                  <button class="overlay-toggle active" data-overlay="sma20">
-                    <span class="overlay-dot" style="background: #ffaa00"></span>
-                    SMA 20
-                  </button>
-                  <button class="overlay-toggle active" data-overlay="sma50">
-                    <span class="overlay-dot" style="background: #a855f7"></span>
-                    SMA 50
-                  </button>
-                  <button class="overlay-toggle" data-overlay="sma200">
-                    <span class="overlay-dot" style="background: #00d4ff"></span>
-                    SMA 200
-                  </button>
-                  <button class="overlay-toggle" data-overlay="ema">
-                    <span class="overlay-dot" style="background: #ff6b6b"></span>
-                    EMA
-                  </button>
-                  <button class="overlay-toggle" data-overlay="bb">
-                    <span class="overlay-dot" style="background: #00d4ff"></span>
-                    Bollinger
-                  </button>
-                </div>
-              </div>
-              <div class="chart-container" id="chart-container">
-                <div class="loading-overlay" id="chart-loading">
-                  <div class="spinner"></div>
-                </div>
+        <!-- STOCK META HEADER BLOCK -->
+        <div class="stock-meta-wrapper">
+          <div class="stock-profile-block">
+            <div class="stock-logo" id="stock-logo-char">N</div>
+            <div class="stock-names">
+              <span class="stock-name-title" id="stock-symbol">NVIDIA</span>
+              <div class="stock-symbol-row">
+                <span class="stock-symbol-tag" id="stock-exchange-tag">NASDAQ</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;" id="stock-name-full">NVIDIA Corporation</span>
               </div>
             </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 32px;">
+            <div class="stock-price-block" style="align-items: flex-end; gap: 2px;">
+              <span class="stock-price-val" id="current-price">$0.00</span>
+              <span class="stock-price-chg positive" id="price-change">+0.00 (0.00%)</span>
+            </div>
+            
+            <div class="stock-actions">
+              <button class="btn-watchlist-action" id="btn-add-watchlist">
+                <span>⭐</span> Add to Watchlist
+              </button>
+              <button class="btn-watchlist-action">
+                <span>🔔</span> Set Alert
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS BAR -->
+        <div class="tabs-navigation">
+          <button class="tab-btn active">Overview</button>
+          <button class="tab-btn">Technical Analysis</button>
+          <button class="tab-btn">Financials</button>
+          <button class="tab-btn">News</button>
+          <button class="tab-btn">AI Forecast</button>
+        </div>
+
+        <!-- LEFT COLUMN (CHARTS, INDICATORS, FEAR/GREED) -->
+        <div class="analyzer-col-left">
+          
+          <!-- CHART PANEL -->
+          <section class="glass-panel" style="padding: 20px;">
+            <div class="chart-header-row">
+              <span class="glass-panel-title" style="font-size: 1rem;">Performance Velocity</span>
+              <div class="chart-overlays-list">
+                <button class="overlay-tag-btn overlay-toggle active" data-overlay="sma20">
+                  <span class="overlay-dot-indicator" style="background-color: #ffaa00;"></span>
+                  SMA 20
+                </button>
+                <button class="overlay-tag-btn overlay-toggle active" data-overlay="sma50">
+                  <span class="overlay-dot-indicator" style="background-color: #a855f7;"></span>
+                  SMA 50
+                </button>
+                <button class="overlay-tag-btn overlay-toggle" data-overlay="sma200">
+                  <span class="overlay-dot-indicator" style="background-color: #00d4ff;"></span>
+                  SMA 200
+                </button>
+                <button class="overlay-tag-btn overlay-toggle" data-overlay="ema">
+                  <span class="overlay-dot-indicator" style="background-color: #ff6b6b;"></span>
+                  EMA
+                </button>
+                <button class="overlay-tag-btn overlay-toggle" data-overlay="bb">
+                  <span class="overlay-dot-indicator" style="background-color: #00d4ff;"></span>
+                  Bollinger
+                </button>
+              </div>
+            </div>
+            
+            <div class="chart-display-container" id="chart-container">
+              <div class="loading-overlay" id="chart-loading">
+                <div class="spinner"></div>
+              </div>
+            </div>
           </section>
 
-          <!-- ====== TECHNICAL INDICATORS GRID ====== -->
-          <section class="indicators-section animate-on-scroll" id="indicators-section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span class="icon">📊</span>
-                Technical Indicators
-              </h2>
-            </div>
-            <div class="indicators-grid" id="indicators-grid">
-              <!-- Populated by JS -->
+          <!-- KEY STATISTICS PANEL -->
+          <section class="glass-panel" style="padding: 20px; margin-bottom: 24px;">
+            <span class="glass-panel-title" style="font-size: 0.95rem; margin-bottom: 16px;">Key Statistics</span>
+            <div class="stats-grid-container">
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">Open</span>
+                <span class="stat-grid-val" id="meta-open">$0.00</span>
+              </div>
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">Period High</span>
+                <span class="stat-grid-val" id="meta-high">$0.00</span>
+              </div>
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">Period Low</span>
+                <span class="stat-grid-val" id="meta-low">$0.00</span>
+              </div>
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">Volume</span>
+                <span class="stat-grid-val" id="meta-volume">0</span>
+              </div>
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">Market Cap</span>
+                <span class="stat-grid-val" id="stock-market-cap">$0.00</span>
+              </div>
+              <div class="stat-grid-item">
+                <span class="stat-grid-lbl">P/E Ratio</span>
+                <span class="stat-grid-val" id="stock-pe-ratio">0.0</span>
+              </div>
             </div>
           </section>
 
-          <!-- ====== DETECTED PATTERNS ====== -->
-          <section class="patterns-section animate-on-scroll" id="patterns-section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span class="icon">🔍</span>
-                Detected Candlestick & Chart Patterns
-              </h2>
+          <!-- TECHNICAL INDICATORS -->
+          <div class="indicator-cards-row" id="indicators-grid-container">
+            <!-- RSI Card -->
+            <div class="indicator-mini-card">
+              <div class="ind-lbl">RSI (14)</div>
+              <div class="ind-val-row">
+                <span class="ind-num" id="rsi-val">0.00</span>
+                <span class="ind-status-badge neutral" id="rsi-status">Neutral</span>
+              </div>
+              <div class="ind-track-bar">
+                <div class="ind-fill-bar" id="rsi-bar" style="width: 50%;"></div>
+              </div>
             </div>
-            <div class="patterns-grid" id="patterns-grid">
-              <!-- Populated by JS -->
+            <!-- MACD Card -->
+            <div class="indicator-mini-card">
+              <div class="ind-lbl">MACD</div>
+              <div class="ind-val-row">
+                <span class="ind-num" id="macd-val">0.00</span>
+                <span class="ind-status-badge bullish" id="macd-status">Crossover</span>
+              </div>
+              <div class="ind-track-bar">
+                <div class="ind-fill-bar" id="macd-bar" style="width: 75%;"></div>
+              </div>
             </div>
-          </section>
+            <!-- Trend Strength Card -->
+            <div class="indicator-mini-card">
+              <div class="ind-lbl">Trend Strength</div>
+              <div class="ind-val-row">
+                <span class="ind-num" id="adx-val">0.00</span>
+                <span class="ind-status-badge bullish" id="adx-status">Strong</span>
+              </div>
+              <div class="ind-track-bar">
+                <div class="ind-fill-bar" id="adx-bar" style="width: 68%;"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FEAR & GREED + SECTORS ROW -->
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px;">
+            <!-- Fear & Greed Card -->
+            <div class="glass-panel fear-greed-dial-box">
+              <span class="glass-panel-title" style="align-self: flex-start; margin-bottom: 12px; font-size: 0.95rem;">Fear & Greed Index</span>
+              
+              <canvas class="fear-greed-gauge-canvas" id="fear-greed-canvas" width="220" height="120"></canvas>
+              <div class="fear-greed-info-label">
+                <div class="fear-greed-numeric" id="fear-greed-label">72</div>
+                <div class="fear-greed-desc-text" id="fear-greed-desc" style="color: var(--bullish-green);">Greed</div>
+              </div>
+            </div>
+            
+            <!-- Trending Sectors Card -->
+            <div class="glass-panel">
+              <span class="glass-panel-title" style="margin-bottom: 16px; font-size: 0.95rem;">Trending Sectors</span>
+              <div class="trending-sectors-list" id="sector-heatmap">
+                <div class="sector-row-card">
+                  <span class="sector-name-txt">Technology</span>
+                  <span class="sector-val-txt up">+1.84%</span>
+                </div>
+                <div class="sector-row-card">
+                  <span class="sector-name-txt">Energy</span>
+                  <span class="sector-val-txt down">-0.42%</span>
+                </div>
+                <div class="sector-row-card">
+                  <span class="sector-name-txt">Healthcare</span>
+                  <span class="sector-val-txt up">+1.12%</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <!-- ====== COMPREHENSIVE TREND TABLE ====== -->
-          <section class="trend-section animate-on-scroll" id="trend-section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span class="icon">📋</span>
-                Trend Analysis Matrix
-              </h2>
-            </div>
-            <div class="trend-table-wrapper">
-              <table class="trend-table" id="trend-table">
-                <thead>
-                  <tr>
-                    <th>Indicator</th>
-                    <th>Direction</th>
-                    <th>Strength</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody id="trend-body">
-                  <!-- Populated by JS -->
-                </tbody>
-              </table>
+          <!-- AI Price Projection -->
+          <section class="glass-panel">
+            <span class="glass-panel-title" style="margin-bottom: 12px;">📊 AI Price Projection (30D)</span>
+            <div style="display: flex; gap: 24px; align-items: center;">
+              <div style="flex-grow: 1;">
+                <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Expected Trading Range</div>
+                <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; font-family: var(--font-mono);">
+                  <span style="color: var(--text-secondary); font-size: 1.5rem;" id="proj-range-low">$0.00</span>
+                  <span style="color: var(--text-muted); font-size: 1.25rem; font-weight: 400; margin: 0 8px;">—</span>
+                  <span style="color: var(--bullish-green);" id="proj-range-high">$0.00</span>
+                </div>
+                <p class="pattern-desc" id="prediction-summary">
+                  Historical variance and volatility modeling suggests a consolidation and potential breakout of the current resistance level within the next 15 trading sessions.
+                </p>
+              </div>
+              <div style="width: 140px; height: 70px; border-radius: 8px; border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; background-color: rgba(255, 255, 255, 0.01);">
+                <svg width="100" height="50" viewBox="0 0 100 50" fill="none">
+                  <path d="M10 40 Q 30 20, 50 30 T 90 10" stroke="var(--accent-blue)" stroke-width="2.5" fill="none"/>
+                  <line x1="50" y1="5" x2="50" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" stroke-dasharray="3"/>
+                </svg>
+              </div>
             </div>
           </section>
         </div>
 
-        <!-- ====== RIGHT COLUMN: Watchlist, AI Prediction, News ====== -->
-        <div class="grid-col-4">
+        <!-- RIGHT COLUMN (AI SIGNAL, PATTERNS, NEWS, RISK) -->
+        <div class="analyzer-col-right">
           
-          <!-- ====== LOCAL WATCHLIST PANEL ====== -->
-          <div class="dashboard-card watchlist-card">
-            <div class="panel-header">
-              <span class="panel-title">⭐ Watchlist</span>
-              <button class="btn-sm" id="btn-add-watchlist">+ Add Current</button>
+          <!-- AI PREDICTION CARD -->
+          <section class="prediction-signal-box bullish" id="prediction-card">
+            <div class="prediction-top-row">
+              <span class="prediction-badge" id="risk-badge">
+                <span class="status-dot" style="background-color: var(--bullish-green); box-shadow: none;"></span>
+                <span id="prediction-direction">BULLISH SIGNAL</span>
+              </span>
+              <span class="panel-badge">AI Prediction</span>
             </div>
-            <div class="watchlist-list" id="watchlist-items">
-              <!-- Populated by watchlist.js -->
+            
+            <div class="prediction-kpis">
+              <div class="pred-kpi-item">
+                <span class="pred-kpi-lbl">Confidence</span>
+                <span class="pred-kpi-val" id="confidence-value">87%</span>
+              </div>
+              <div class="pred-kpi-item">
+                <span class="pred-kpi-lbl">Exp. Move</span>
+                <span class="pred-kpi-val green" id="expected-move-val">+4.3%</span>
+              </div>
             </div>
-          </div>
+            
+            <!-- TIMEFRAME FORECASTS -->
+            <div class="prediction-timeframes-box">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Horizon Projections</div>
+              <div class="pred-tf-grid" id="prediction-timeframes">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+            
+            <div class="prediction-reasons">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Prediction Reasons</div>
+              <div id="signal-list" style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Reason 1 -->
+                <div class="reason-item">
+                  <div class="reason-icon-wrapper">⚡</div>
+                  <div class="reason-content">
+                    <span class="reason-title">Breakout Detected</span>
+                    <span class="reason-desc">Price cleared historical resistance on high volume.</span>
+                  </div>
+                </div>
+                <!-- Reason 2 -->
+                <div class="reason-item">
+                  <div class="reason-icon-wrapper">👥</div>
+                  <div class="reason-content">
+                    <span class="reason-title">Institutional Buying</span>
+                    <span class="reason-desc">Large block trades detected in dark pools over last 48h.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <!-- ====== AI PREDICTION CARD ====== -->
-          <section class="prediction-section" id="prediction-section" style="margin-top: var(--sp-4);">
-            <div class="prediction-card neutral" id="prediction-card">
-              <div class="prediction-header">
-                <span class="prediction-label">AI Signal Analysis</span>
-                <span class="badge" id="risk-badge" style="background: var(--accent-amber-dim); color: var(--accent-amber);">Medium Risk</span>
+          </section>
+
+          <!-- PATTERN ENGINE -->
+          <section class="glass-panel" id="patterns-section">
+            <div class="glass-panel-header">
+              <span class="glass-panel-title" style="font-size: 0.95rem;">Pattern Engine</span>
+              <span class="panel-badge" style="color: var(--bullish-green);" id="patterns-count">Active</span>
+            </div>
+            <div class="pattern-engine-box" id="patterns-grid">
+              <div class="pattern-svg-container">
+                <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+                  <line x1="10" y1="40" x2="60" y2="10" stroke="var(--accent-blue)" stroke-width="2.5"/>
+                  <path d="M60 10 L 70 30 L 80 15 L 90 28 L 100 12" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                  <line x1="60" y1="10" x2="110" y2="10" stroke="var(--border-color)" stroke-width="1.5" stroke-dasharray="3"/>
+                  <line x1="70" y1="30" x2="110" y2="30" stroke="var(--border-color)" stroke-width="1.5" stroke-dasharray="3"/>
+                </svg>
               </div>
-              <div class="prediction-arrow" id="prediction-arrow">→</div>
-              <div class="prediction-direction" id="prediction-direction">─ NEUTRAL</div>
-              <div class="confidence-gauge">
-                <div class="gauge-track">
-                  <div class="gauge-fill" id="gauge-fill" style="width: 0%"></div>
+              <div class="pattern-targets-list">
+                <div>
+                  <span class="pattern-target-lbl">Entry</span>
+                  <div class="pattern-target-val" id="pattern-entry">$724.00</div>
                 </div>
-                <div class="confidence-text">
-                  <span>Confidence</span>
-                  <span class="confidence-value" id="confidence-value">0%</span>
+                <div>
+                  <span class="pattern-target-lbl">Target</span>
+                  <div class="pattern-target-val" style="color: var(--bullish-green);" id="pattern-target">$794.80</div>
                 </div>
               </div>
-              <p class="prediction-summary" id="prediction-summary">
-                Analyzing market signals and chart patterns...
+              <p class="pattern-desc" id="pattern-description-text">
+                The AI has identified a bullish consolidation pattern following a strong impulse move. Probability of breakout within 48 hours is high.
               </p>
             </div>
+          </section>
 
-            <!-- Signal Breakdown -->
-            <div class="signals-panel">
-              <div class="panel-header">
-                <span class="panel-title">Signal Components</span>
-                <span class="panel-badge" id="signal-count">0 signals</span>
+          <!-- NEWS INTELLIGENCE -->
+          <section class="glass-panel">
+            <div class="glass-panel-header">
+              <span class="glass-panel-title" style="font-size: 0.95rem;">News Intelligence</span>
+              <button class="header-icon-btn" style="font-size: 0.95rem;">≡</button>
+            </div>
+            <div class="pulse-timeline" id="news-timeline-container">
+              <div class="pulse-item">
+                <span class="pulse-dot"></span>
+                <div class="pulse-time">12:45 PM • <span style="color: var(--bullish-green); font-weight: 700;">Bullish</span></div>
+                <div class="pulse-text">NVIDIA expands Blackwell B200 production capacity.</div>
               </div>
-              <div class="signal-list" id="signal-list">
-                <!-- Populated by JS -->
+              <div class="pulse-item">
+                <span class="pulse-dot"></span>
+                <div class="pulse-time">12:32 PM • <span style="color: var(--text-secondary); font-weight: 700;">Neutral</span></div>
+                <div class="pulse-text">US expands restrictions on high-end AI chip exports.</div>
+              </div>
+            </div>
+            <div style="text-align: center; padding-top: 14px;">
+              <a href="#" style="color: var(--accent-blue); text-decoration: none; font-size: 0.8rem; font-weight: 700;" id="news-view-more">
+                View 14 More Reports
+              </a>
+            </div>
+          </section>
+
+          <!-- RISK INTELLIGENCE -->
+          <section class="glass-panel">
+            <span class="glass-panel-title" style="margin-bottom: 16px; font-size: 0.95rem;">Risk Intelligence</span>
+            <div class="risk-metrics-list">
+              <div class="risk-metric-row">
+                <span class="risk-lbl">Volatility Index (VIX)</span>
+                <span class="risk-val" style="color: var(--bullish-green);">Low (14.2)</span>
+              </div>
+              <div class="risk-metric-row">
+                <span class="risk-lbl">Beta (5Y Monthly)</span>
+                <span class="risk-val">1.75</span>
+              </div>
+              <div class="risk-metric-row">
+                <span class="risk-lbl">Implied Volatility</span>
+                <span class="risk-val">42.5%</span>
+              </div>
+            </div>
+            
+            <div class="risk-alert-box">
+              <span class="risk-alert-icon">⚠</span>
+              <div>
+                <strong style="color: var(--warning-amber);">SKEW ALERT</strong><br>
+                Options pricing reflects significant upside call volume at the $750.0 strike for next Friday expiry.
               </div>
             </div>
           </section>
 
-          <!-- ====== NEWS SENTIMENT PANEL ====== -->
-          <div class="dashboard-card sentiment-card" style="margin-top: var(--sp-4);">
-            <div class="panel-header">
-              <span class="panel-title">📰 News Sentiment</span>
-              <span class="panel-badge" id="sentiment-overall-badge">50% Neutral</span>
-            </div>
-            <div class="sentiment-gauge-wrapper">
-              <div class="sentiment-meter-bar">
-                <div class="meter-fill positive" id="sentiment-bar-pos" style="width: 33%"></div>
-                <div class="meter-fill neutral" id="sentiment-bar-neu" style="width: 34%"></div>
-                <div class="meter-fill negative" id="sentiment-bar-neg" style="width: 33%"></div>
-              </div>
-              <div class="sentiment-meter-labels">
-                <span class="pos-text">Bullish (<span id="sentiment-percent-pos">33</span>%)</span>
-                <span class="neu-text">Neutral (<span id="sentiment-percent-neu">34</span>%)</span>
-                <span class="neg-text">Bearish (<span id="sentiment-percent-neg">33</span>%)</span>
-              </div>
-            </div>
-            <p class="sentiment-summary-text" id="sentiment-summary-text">
-              Loading news insights...
-            </p>
-            <div class="news-list" id="news-list-container">
-              <!-- Populated by sentiment.js -->
-            </div>
-          </div>
         </div>
+
       </div>
 
-      <!-- ====== FOOTER ====== -->
-      <footer class="app-footer">
-        <p>
-          ⚠️ <strong>Disclaimer:</strong> SMAI is an AI-powered educational research tool. Technical predictions are based on statistical heuristics and historical data, and do not constitute financial advisory. Invest at your own risk.
-        </p>
-        <p style="margin-top: 0.5rem;">
-          © 2026 SMAI Platform. Developed with Lightweight Charts.
-        </p>
+      <!-- ═══════════════════════════════════════════════════════════════
+           AI FORECAST DASHBOARD — Full Width (14 Sections)
+           Shown only when AI Forecast tab is active.
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="ai-forecast-dashboard" class="ai-fd" style="display: none; position: relative;">
+        <!-- LOADING OVERLAY -->
+        <div id="ai-loading-overlay" class="ai-loading-overlay">
+          <div class="ai-loading-spinner"></div>
+          <div class="ai-loading-text">Generating AI Forecast...</div>
+        </div>
+
+        <!-- ERROR BANNER -->
+        <div id="ai-error-banner" style="display: none; background: rgba(231, 76, 60, 0.1); border: 1px solid var(--e74c3c); color: var(--text-main); padding: 16px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+          <h3 style="color: var(--e74c3c); margin-bottom: 8px; font-weight: 600;">Unable to generate prediction</h3>
+          <p id="ai-error-message" style="font-size: 0.9rem; color: var(--text-secondary);"></p>
+        </div>
+
+        <!-- SECTION 1: Hero AI Forecast Card -->
+        <section class="ai-fd-hero" id="ai-hero-card">
+          <div class="ai-fd-hero-left">
+            <div class="ai-fd-signal-row">
+              <span class="ai-fd-signal-badge" id="ai-signal-badge">🟢 Strong Buy</span>
+              <span class="ai-fd-panel-tag">AI Forecast</span>
+            </div>
+
+            <div class="ai-fd-price-grid">
+              <div class="ai-fd-price-item">
+                <span class="ai-fd-price-label">Current Price</span>
+                <span class="ai-fd-price-val" id="ai-current-price">-</span>
+              </div>
+              <div class="ai-fd-price-item">
+                <span class="ai-fd-price-label">Predicted Price</span>
+                <span class="ai-fd-price-val ai-fd-predicted" id="ai-predicted-price">-</span>
+              </div>
+              <div class="ai-fd-price-item">
+                <span class="ai-fd-price-label">Expected Return</span>
+                <span class="ai-fd-price-val ai-fd-return" id="ai-expected-return">-</span>
+              </div>
+              <div class="ai-fd-price-item">
+                <span class="ai-fd-price-label">Probability</span>
+                <span class="ai-fd-price-val" id="ai-probability">-</span>
+              </div>
+            </div>
+
+            <!-- Horizon Selector -->
+            <div class="ai-fd-horizon-bar">
+              <button class="ai-fd-horizon-btn active" data-horizon="1D">1 Day</button>
+              <button class="ai-fd-horizon-btn" data-horizon="1W">1 Week</button>
+              <button class="ai-fd-horizon-btn" data-horizon="1M">1 Month</button>
+              <button class="ai-fd-horizon-btn" data-horizon="3M">3 Months</button>
+            </div>
+          </div>
+
+          <div class="ai-fd-hero-right">
+            <div class="ai-fd-confidence-ring-wrapper">
+              <svg class="ai-fd-confidence-ring" viewBox="0 0 120 120" width="160" height="160">
+                <circle class="ai-fd-ring-bg" cx="60" cy="60" r="52" />
+                <circle class="ai-fd-ring-fill" id="ai-confidence-ring" cx="60" cy="60" r="52"
+                  stroke-dasharray="0 326.73" stroke-dashoffset="0" />
+              </svg>
+              <div class="ai-fd-ring-center">
+                <span class="ai-fd-ring-pct" id="ai-confidence-pct">-</span>
+                <span class="ai-fd-ring-sub">Confidence</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: Future Price Forecast Chart -->
+        <section class="ai-fd-card">
+          <div class="ai-fd-card-header">
+            <span class="ai-fd-card-title">📈 Future Price Forecast</span>
+            <div class="ai-fd-forecast-tf-bar">
+              <button class="ai-fd-forecast-btn active" data-forecast-days="5">5D</button>
+              <button class="ai-fd-forecast-btn" data-forecast-days="10">10D</button>
+              <button class="ai-fd-forecast-btn" data-forecast-days="30">30D</button>
+              <button class="ai-fd-forecast-btn" data-forecast-days="90">90D</button>
+            </div>
+          </div>
+          <div class="ai-fd-forecast-chart" id="ai-forecast-chart-container" style="height: 340px;"></div>
+        </section>
+
+        <!-- Two-column row: AI Reasoning + Factors Breakdown -->
+        <div class="ai-fd-row-2col">
+
+          <!-- SECTION 3: AI Reasoning -->
+          <section class="ai-fd-card ai-fd-reasoning">
+            <span class="ai-fd-card-title">🧠 AI Reasoning</span>
+            <div class="ai-fd-reasoning-body" id="ai-reasoning-body">
+              <p>Loading analysis...</p>
+            </div>
+          </section>
+
+          <!-- SECTION 4: Factors Breakdown -->
+          <section class="ai-fd-card">
+            <span class="ai-fd-card-title">⚖️ Factors Breakdown</span>
+            <div class="ai-fd-factors-list" id="ai-factors-list">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+        </div>
+
+        <!-- SECTION 5: Prediction Timeline -->
+        <section class="ai-fd-card">
+          <span class="ai-fd-card-title">📅 Prediction Timeline</span>
+          <div class="ai-fd-timeline-grid" id="ai-timeline-grid">
+            <!-- 3 cards dynamically populated -->
+          </div>
+        </section>
+
+        <!-- Two-column row: Confidence Details + Model Accuracy -->
+        <div class="ai-fd-row-2col">
+
+          <!-- SECTION 6: Confidence Details -->
+          <section class="ai-fd-card">
+            <div class="ai-fd-card-header">
+              <span class="ai-fd-card-title">🔍 Confidence Breakdown</span>
+              <span class="ai-fd-conf-score" id="ai-overall-conf-score">87%</span>
+            </div>
+            <div class="ai-fd-conf-bars" id="ai-conf-bars">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+
+          <!-- SECTION 7: Model Accuracy -->
+          <section class="ai-fd-card">
+            <span class="ai-fd-card-title">🎯 Model Accuracy</span>
+            <div class="ai-fd-accuracy-grid" id="ai-accuracy-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+        </div>
+
+        <!-- SECTION 8: Scenario Analysis -->
+        <section class="ai-fd-card">
+          <span class="ai-fd-card-title">🔮 Scenario Analysis</span>
+          <div class="ai-fd-scenario-grid" id="ai-scenario-grid">
+            <!-- 3 cards: Bull, Base, Bear -->
+          </div>
+        </section>
+
+        <!-- Two-column row: Risk Analysis + News Impact -->
+        <div class="ai-fd-row-2col">
+
+          <!-- SECTION 9: Risk Analysis -->
+          <section class="ai-fd-card">
+            <span class="ai-fd-card-title">🛡️ Risk Analysis</span>
+            <div class="ai-fd-risk-list" id="ai-risk-list">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+
+          <!-- SECTION 10: News Impact -->
+          <section class="ai-fd-card">
+            <div class="ai-fd-card-header">
+              <span class="ai-fd-card-title">📰 News Impact</span>
+              <span class="ai-fd-news-score" id="ai-news-overall-score">Bullish</span>
+            </div>
+            <div class="ai-fd-news-list" id="ai-news-impact-list">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+        </div>
+
+        <!-- Two-column row: Technical Score + Pattern Detection -->
+        <div class="ai-fd-row-2col">
+
+          <!-- SECTION 11: Technical Score -->
+          <section class="ai-fd-card">
+            <div class="ai-fd-card-header">
+              <span class="ai-fd-card-title">📊 Technical Score</span>
+              <span class="ai-fd-tech-overall" id="ai-tech-overall">0</span>
+            </div>
+            <div class="ai-fd-tech-scores" id="ai-tech-scores">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+
+          <!-- SECTION 12: Pattern Detection -->
+          <section class="ai-fd-card">
+            <span class="ai-fd-card-title">🔎 Pattern Detection</span>
+            <div class="ai-fd-patterns-list" id="ai-patterns-list">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+        </div>
+
+        <!-- SECTION 14: Executive Summary -->
+        <section class="ai-fd-exec-summary" id="ai-exec-summary">
+          <div class="ai-fd-exec-header">
+            <span class="ai-fd-card-title">✨ AI Executive Summary</span>
+          </div>
+          <div class="ai-fd-exec-body" id="ai-exec-body">
+            <p>Loading summary...</p>
+          </div>
+          <div class="ai-fd-exec-footer" id="ai-exec-footer">
+            <div class="ai-fd-exec-metric">
+              <span class="ai-fd-exec-metric-lbl">Recommended Action</span>
+              <span class="ai-fd-exec-metric-val ai-fd-action-badge" id="ai-exec-action">HOLD</span>
+            </div>
+            <div class="ai-fd-exec-metric">
+              <span class="ai-fd-exec-metric-label">Confidence</span>
+              <span class="ai-fd-exec-metric-val" id="ai-exec-confidence">-</span>
+            </div>
+            <div class="ai-fd-exec-metric">
+              <span class="ai-fd-exec-metric-label">Target Price</span>
+              <span class="ai-fd-exec-metric-val" id="ai-exec-target">-</span>
+            </div>
+            <div class="ai-fd-exec-metric">
+              <span class="ai-fd-exec-metric-label">Stop Loss</span>
+              <span class="ai-fd-exec-metric-val" id="ai-exec-stoploss">-</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+      <!-- END AI FORECAST DASHBOARD -->
+
+      <!-- FOOTER -->
+      <footer style="margin-top: auto; padding: 24px 32px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+        <div>
+          © 2026 Share Market AI. All rights reserved. Precision data provided by AI Intelligence Corp.
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <a href="#" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+          <a href="#" style="color: inherit; text-decoration: none;">Terms of Service</a>
+          <a href="#" style="color: inherit; text-decoration: none;">API Docs</a>
+        </div>
       </footer>
+
     </main>
+
   </div>
 
-  <!-- ====== FLOATING AI CHATBOT ====== -->
-  <div class="chatbot-wrapper" id="chatbot-wrapper">
-    <button class="chatbot-toggle-btn" id="chatbot-toggle" aria-label="Open AI Assistant">
-      💬
-    </button>
-    <div class="chatbot-panel" id="chatbot-panel">
-      <div class="chatbot-header">
-        <div class="bot-info">
-          <span class="bot-avatar">🤖</span>
-          <div class="bot-meta">
-            <h3>SMAI Assistant</h3>
-            <span class="bot-status">Powered by Gemini AI</span>
-          </div>
-        </div>
-        <button class="btn-icon" id="chatbot-close" aria-label="Close Chat">✕</button>
-      </div>
-      <div class="chatbot-messages" id="chatbot-messages">
-        <div class="message system-message">
-          Hello! I'm your SMAI market assistant. Ask me anything about the currently loaded stock (e.g. "What is the RSI?", "Is it a good time to buy?", "Explain the indicators").
-        </div>
-      </div>
-      <div class="chatbot-input-area">
-        <input type="text" id="chatbot-input" placeholder="Type your message here..." autocomplete="off">
-        <button id="chatbot-send-btn" class="btn-primary">Send</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- ====== API KEY MODAL ====== -->
-  <div class="modal-overlay" id="api-modal">
-    <div class="modal">
-      <h2>🔑 API & Integrations</h2>
-      <p>
-        Enter your API keys for advanced platform features. Config keys are saved safely in your browser storage.
-      </p>
-      
-      <div class="modal-field">
-        <label for="api-key-input">Alpha Vantage API Key (For Live Market Data)</label>
-        <input
-          type="text"
-          id="api-key-input"
-          class="modal-input"
-          placeholder="Alpha Vantage key (takes 10s at alphavantage.co)..."
-        >
-      </div>
 
-      <div class="modal-field" style="margin-top: 1rem;">
-        <label for="gemini-key-input">Gemini API Key (For Dynamic Chatbot Insights)</label>
-        <input
-          type="password"
-          id="gemini-key-input"
-          class="modal-input"
-          placeholder="Gemini API Key..."
-        >
-      </div>
+  <!-- LOCAL WATCHLIST CARD OVERLAY TRIGGERED BY ADD TO WATCHLIST IF ACCESSED -->
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
 
-      <div class="modal-actions">
-        <button class="btn-primary" id="modal-save">Save Settings</button>
-        <button class="btn-secondary" id="modal-demo">Use Demo Mode</button>
-      </div>
-      <button class="btn-icon" id="modal-close" style="position: absolute; top: 1rem; right: 1rem;" aria-label="Close modal">✕</button>
-    </div>
-  </div>
-
-  <!-- ====== TOAST CONTAINER ====== -->
-  <div class="toast-container" id="toast-container" aria-live="polite"></div>
-
-  <!-- ====== APPLICATION SCRIPTS ====== -->
-  <script type="module" src="js/app.js?v=20250528b"></script>
-  <script type="module" src="js/watchlist.js?v=20250528b"></script>
-  <script type="module" src="js/chatbot.js?v=20250528b"></script>
-  <script>
-    // Theme toggle — plain script, runs immediately after DOM is parsed
-    (function() {
-      var toggleBtn = document.getElementById('theme-toggle');
-      var themeLabel = document.querySelector('.theme-label');
-      if (!toggleBtn) return;
-
-      function applyTheme(mode) {
-        var isLight = mode === 'light';
-        document.body.classList.toggle('light-mode', isLight);
-        toggleBtn.classList.toggle('active', isLight);
-        if (themeLabel) themeLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
-      }
-
-      applyTheme(localStorage.getItem('smai_theme') || 'dark');
-
-      toggleBtn.addEventListener('click', function() {
-        var nowLight = !document.body.classList.contains('light-mode');
-        applyTheme(nowLight ? 'light' : 'dark');
-        localStorage.setItem('smai_theme', nowLight ? 'light' : 'dark');
-      });
-    })();
-  </script>
+  <!-- SCRIPTS -->
+  <script type="module" src="js/app.js?v=20260712_rev4"></script>
+  <script type="module" src="js/watchlist.js?v=20260712_rev4"></script>
+  <script type="module" src="js/chatbot.js?v=20260712_rev4"></script>
 </body>
 </html>

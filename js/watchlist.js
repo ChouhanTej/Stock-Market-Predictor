@@ -4,8 +4,8 @@
  * Emits browser notifications when conditions are met.
  */
 
-import { state, loadStock, showToast } from './app.js';
-import { getSentiment } from './sentiment.js';
+import { state, loadStock, showToast } from './app.js?v=20260712_rev4';
+import { getSentiment } from './sentiment.js?v=20260712_rev4';
 
 // Local storage key
 const WATCHLIST_KEY = 'smai_watchlist';
@@ -169,7 +169,9 @@ function updateWatchlistPrice(symbol, price, signalDirection, percentChange = nu
 
   if (!priceEl) return;
 
-  priceEl.textContent = `₹${price.toFixed(2)}`;
+  const isIndian = symbol.toUpperCase().endsWith('.NS');
+  const curr = isIndian ? '₹' : '$';
+  priceEl.textContent = `${curr}${price.toFixed(2)}`;
 
   if (percentChange === null) {
     percentChange = signalDirection === 'BULLISH' ? Math.random() * 2 :
@@ -188,6 +190,8 @@ function updateWatchlistPrice(symbol, price, signalDirection, percentChange = nu
  */
 function openAlertDialog(symbol) {
   const symAlerts = alerts[symbol] || { priceAbove: '', priceBelow: '', rsiAbove: '', rsiBelow: '' };
+  const isIndian = symbol.toUpperCase().endsWith('.NS');
+  const curr = isIndian ? '₹' : '$';
 
   const modalHtml = `
     <div class="modal-overlay active" id="alert-modal">
@@ -198,12 +202,12 @@ function openAlertDialog(symbol) {
         </p>
         
         <div class="modal-field" style="margin-top: 1rem;">
-          <label>Price crosses above (₹)</label>
+          <label>Price crosses above (${curr})</label>
           <input type="number" step="0.01" id="alert-price-above" class="modal-input" value="${symAlerts.priceAbove || ''}" placeholder="e.g. 230">
         </div>
         
         <div class="modal-field" style="margin-top: 0.75rem;">
-          <label>Price drops below (₹)</label>
+          <label>Price drops below (${curr})</label>
           <input type="number" step="0.01" id="alert-price-below" class="modal-input" value="${symAlerts.priceBelow || ''}" placeholder="e.g. 180">
         </div>
 
@@ -272,18 +276,21 @@ function checkAlerts(symbol, currentPrice, currentRsi) {
   const symAlerts = alerts[symbol];
   if (!symAlerts) return;
 
+  const isIndian = symbol.toUpperCase().endsWith('.NS');
+  const curr = isIndian ? '₹' : '$';
+
   const title = `📈 SMAI Market Alert: ${symbol}`;
   let triggered = false;
   let body = '';
 
   if (symAlerts.priceAbove && currentPrice >= symAlerts.priceAbove) {
-    body += `Price is now ₹${currentPrice.toFixed(2)} (crossed target ₹${symAlerts.priceAbove.toFixed(2)}). `;
+    body += `Price is now ${curr}${currentPrice.toFixed(2)} (crossed target ${curr}${symAlerts.priceAbove.toFixed(2)}). `;
     triggered = true;
     symAlerts.priceAbove = null; // trigger once
   }
 
   if (symAlerts.priceBelow && currentPrice <= symAlerts.priceBelow) {
-    body += `Price is now ₹${currentPrice.toFixed(2)} (fell below target ₹${symAlerts.priceBelow.toFixed(2)}). `;
+    body += `Price is now ${curr}${currentPrice.toFixed(2)} (fell below target ${curr}${symAlerts.priceBelow.toFixed(2)}). `;
     triggered = true;
     symAlerts.priceBelow = null;
   }

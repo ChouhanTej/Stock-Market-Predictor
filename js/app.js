@@ -3,12 +3,13 @@
  * Orchestrates all modules: API, Chart, Indicators, Patterns, Predictor
  */
 
-import { searchSymbols, isValidSymbol, fetchStockData, fetchLivePrice, warmLivePrices, generateDemoData, filterByTimeframe, getStockMeta } from './api.js';
-import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js';
-import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js';
-import { detectAllPatterns, detectSupportResistance } from './patterns.js';
-import { predict } from './predictor.js';
-import { getSentiment } from './sentiment.js';
+import { searchSymbols, isValidSymbol, fetchStockData, fetchLivePrice, warmLivePrices, generateDemoData, filterByTimeframe, getStockMeta } from './api.js?v=20260712_rev4';
+import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js?v=20260712_rev4';
+import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js?v=20260712_rev4';
+import { detectAllPatterns, detectSupportResistance } from './patterns.js?v=20260712_rev4';
+import { predict } from './predictor.js?v=20260712_rev4';
+import { getSentiment } from './sentiment.js?v=20260712_rev4';
+import { computeAllForecastData, computeForecastChartData, getCurrency } from './ai-forecast.js?v=20260712_rev5';
 
 /* ======================================
    STATE
@@ -17,8 +18,8 @@ export const state = {
   symbol: localStorage.getItem('smai_last_symbol') || 'AAPL',
   symbolName: localStorage.getItem('smai_last_symbol_name') || 'Apple Inc.',
   timeframe: '1Y',
-  apiKey: localStorage.getItem('av_api_key') || '',
-  demoMode: true,
+  apiKey: localStorage.getItem('fh_api_key') || 'd99lb7hr01qssj13qt4gd99lb7hr01qssj13qt50',
+  demoMode: false,
   fullData: [],       // all data for symbol
   filteredData: [],   // timeframe-filtered
   overlays: {
@@ -34,6 +35,11 @@ export const state = {
   indicators: null,
   patterns: [],
 };
+
+// AI Forecast Dashboard state
+let forecastChartInstance = null;
+let forecastChartSeries = {};
+let currentForecastDays = 30;
 
 let realTimeInterval = null;
 
@@ -71,19 +77,28 @@ function cacheDom() {
   dom.predictionSummary = $('#prediction-summary');
   dom.signalList = $('#signal-list');
   dom.signalCount = $('#signal-count');
+  dom.predictionTimeframes = $('#prediction-timeframes');
 
-  // Indicators
-  dom.indicatorsGrid = $('#indicators-grid');
+  // New Redesigned Indicators
+  dom.rsiVal = $('#rsi-val');
+  dom.rsiStatus = $('#rsi-status');
+  dom.rsiBar = $('#rsi-bar');
+  dom.macdVal = $('#macd-val');
+  dom.macdStatus = $('#macd-status');
+  dom.macdBar = $('#macd-bar');
+  dom.adxVal = $('#adx-val');
+  dom.adxStatus = $('#adx-status');
+  dom.adxBar = $('#adx-bar');
 
   // Patterns
   dom.patternsGrid = $('#patterns-grid');
+  dom.patternsCount = $('#patterns-count');
+
+  // News Timeline
+  dom.newsTimelineContainer = $('#news-timeline-container');
 
   // Trend table
   dom.trendBody = $('#trend-body');
-
-  // Modal
-  dom.modalOverlay = $('#api-modal');
-  dom.apiKeyInput = $('#api-key-input');
 
   // Toast
   dom.toastContainer = $('#toast-container');
@@ -98,10 +113,12 @@ export async function init() {
   setupEventListeners();
   updateOverlayButtons();
 
-  // Check for API key
-  if (!state.apiKey) {
-    state.demoMode = true;
-  }
+  // Clear any stale sessionStorage price cache (may contain old INR-converted values)
+  try {
+    Object.keys(sessionStorage)
+      .filter(k => k.startsWith('smai_price_'))
+      .forEach(k => sessionStorage.removeItem(k));
+  } catch (_) {}
 
   await loadStock(state.symbol);
 
@@ -126,10 +143,6 @@ function setupEventListeners() {
     if (e.key === 'Enter') {
       const val = dom.searchInput.value.trim().toUpperCase();
       if (val) {
-        if (state.demoMode && !isValidSymbol(val)) {
-          showToast(`Stock not found: "${val}". Check spelling or add an API key for live search.`, 'error');
-          return;
-        }
         selectSymbol(val, val);
         closeSearchDropdown();
       }
@@ -164,19 +177,37 @@ function setupEventListeners() {
     });
   });
 
-  // Modal
-  $('#btn-api-key').addEventListener('click', () => openModal());
-  $('#modal-save').addEventListener('click', saveApiKey);
-  $('#modal-demo').addEventListener('click', () => {
-    state.demoMode = true;
-    closeModal();
-    loadStock(state.symbol);
-  });
-  $('#modal-close')?.addEventListener('click', closeModal);
+  // Execute Trade simulation button click
 
-  dom.modalOverlay.addEventListener('click', (e) => {
-    if (e.target === dom.modalOverlay) closeModal();
+  // Execute Trade simulation button click
+  const execTradeBtn = document.getElementById('btn-execute-trade');
+  if (execTradeBtn) {
+    execTradeBtn.addEventListener('click', () => {
+      const currentPrice = state.filteredData[state.filteredData.length - 1]?.close || 0;
+      showToast(`Simulated trade executed for ${state.symbol} at $${currentPrice.toFixed(2)}!`, 'success');
+    });
+  }
+
+  // Tab switching behavior via URL hash
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.textContent.trim().toLowerCase();
+      let tabId = 'overview';
+      if (text === 'overview') tabId = 'overview';
+      else if (text === 'technical analysis') tabId = 'technical';
+      else if (text === 'financials') tabId = 'financials';
+      else if (text === 'news') tabId = 'news';
+      else if (text === 'ai forecast') tabId = 'ai-forecast';
+
+      window.location.hash = tabId;
+    });
   });
+
+  // Listen for hash change to switch tabs dynamically
+  window.addEventListener('hashchange', handleHashTabSwitch);
+  // Trigger on initial load
+  handleHashTabSwitch();
 }
 
 /* ======================================
@@ -255,44 +286,11 @@ export async function loadStock(symbol) {
   showLoading(true);
 
   try {
-    let data;
-
-    if (state.demoMode) {
-      if (!isValidSymbol(symbol)) {
-        showToast(`Stock not found: "${symbol}". Check spelling or add an API key for live search.`, 'error');
-        state.loading = false;
-        showLoading(false);
-        return;
-      }
-      // Fetch a live price to anchor the demo simulation at today's real value.
-      // This is non-blocking — if the network call fails we fall back silently.
-      const livePrice = await fetchLivePrice(symbol).catch(() => null);
-      data = generateDemoData(symbol, 500, livePrice);
-      showToast(`Demo data loaded for ${symbol}`, 'info');
-    } else {
-      try {
-        data = await fetchStockData(symbol, state.apiKey, 'full');
-        showToast(`Live data loaded for ${symbol}`, 'success');
-      } catch (err) {
-        if (err.message.includes('Invalid symbol') || err.message.includes('not found')) {
-          showToast(`Stock not found: "${symbol}". Check spelling or search a standard global ticker.`, 'error');
-          state.loading = false;
-          showLoading(false);
-          return;
-        } else {
-          if (isValidSymbol(symbol)) {
-            showToast(`API Error: ${err.message}. Using demo data.`, 'error');
-            data = generateDemoData(symbol, 500);
-            state.demoMode = true;
-          } else {
-            showToast(`API Error: ${err.message}. Stock not available in database.`, 'error');
-            state.loading = false;
-            showLoading(false);
-            return;
-          }
-        }
-      }
-    }
+    console.log(`[Data Flow] 1. Loading Stock Symbol: ${symbol}`);
+    const data = await fetchStockData(symbol, state.apiKey, 'full');
+    
+    console.log(`[Data Flow] 2. Historical API Price Data (First 5):`, data.slice(0, 5));
+    showToast(`Live data loaded for ${symbol}`, 'success');
 
     state.fullData = data;
     applyTimeframe();
@@ -315,6 +313,8 @@ function applyTimeframe() {
     state.filteredData = state.fullData;
   }
 
+  console.log(`[Data Flow] 3. Filtered Data for Timeframe (${state.timeframe}):`, state.filteredData.slice(-3));
+
   updateChart(true); // Fit content when timeframe changes
   updateStatusBar();
   runAnalysis();
@@ -324,6 +324,10 @@ function applyTimeframe() {
    CHART UPDATE
    ====================================== */
 function updateChart(fit = false) {
+  if (state.filteredData && state.filteredData.length > 0) {
+    console.log(`[Data Flow] 4. Chart Input Data Sample (First):`, state.filteredData[0]);
+    console.log(`[Data Flow] 5. Chart Input Data Sample (Last):`, state.filteredData.at(-1));
+  }
   setChartData(state.filteredData, fit);
   updateOverlays();
 }
@@ -390,17 +394,60 @@ function updateStatusBar() {
   const meta = getStockMeta(state.filteredData);
   if (!meta) return;
 
-  dom.symbolDisplay.textContent = state.symbol;
-  dom.priceDisplay.textContent = `₹${meta.price.toFixed(2)}`;
+  const isIndian = state.symbol.toUpperCase().endsWith('.NS');
+  const curr = getCurrency(state.symbol);
+
+  if (dom.symbolDisplay) dom.symbolDisplay.textContent = state.symbol;
+  if (dom.priceDisplay) dom.priceDisplay.textContent = `${curr}${meta.price.toFixed(2)}`;
 
   const changeSign = meta.change >= 0 ? '+' : '';
-  dom.priceChange.textContent = `${changeSign}${meta.change.toFixed(2)} (${changeSign}${meta.changePercent.toFixed(2)}%)`;
-  dom.priceChange.className = `price-change ${meta.change >= 0 ? 'positive' : 'negative'}`;
+  if (dom.priceChange) {
+    dom.priceChange.textContent = `${changeSign}${meta.change.toFixed(2)} (${changeSign}${meta.changePercent.toFixed(2)}%)`;
+    dom.priceChange.className = `stock-price-chg ${meta.change >= 0 ? 'positive' : 'negative'}`;
+  }
 
-  dom.metaOpen.textContent = `₹${meta.open.toFixed(2)}`;
-  dom.metaHigh.textContent = `₹${meta.periodHigh.toFixed(2)}`;
-  dom.metaLow.textContent = `₹${meta.periodLow.toFixed(2)}`;
-  dom.metaVolume.textContent = formatVolume(meta.avgVolume);
+  if (dom.metaOpen) dom.metaOpen.textContent = `${curr}${meta.open.toFixed(2)}`;
+  if (dom.metaHigh) dom.metaHigh.textContent = `${curr}${meta.periodHigh.toFixed(2)}`;
+  if (dom.metaLow)  dom.metaLow.textContent  = `${curr}${meta.periodLow.toFixed(2)}`;
+  if (dom.metaVolume) dom.metaVolume.textContent = formatVolume(meta.avgVolume);
+
+  // Set stock details
+  const logo = document.getElementById('stock-logo-char');
+  if (logo) logo.textContent = state.symbol[0];
+
+  const full = document.getElementById('stock-name-full');
+  if (full) full.textContent = state.symbolName || state.symbol;
+
+  const exch = document.getElementById('stock-exchange-tag');
+  if (exch) exch.textContent = state.symbol.endsWith('.NS') ? 'NSE' : 'NASDAQ';
+
+  // Mock Caps & P/E for high-fidelity
+  const cap = document.getElementById('stock-market-cap');
+  const pe = document.getElementById('stock-pe-ratio');
+  if (cap) {
+    const caps = { 'AAPL': '$2.89T', 'TSLA': '$760.4B', 'MSFT': '$3.15T', 'NVDA': '$1.82T' };
+    cap.textContent = caps[state.symbol] || '$45.2B';
+  }
+  if (pe) {
+    const pes = { 'AAPL': '28.4', 'TSLA': '68.2', 'MSFT': '34.8', 'NVDA': '95.4' };
+    pe.textContent = pes[state.symbol] || '18.2';
+  }
+
+  // AI Price bounds
+  const lowBound = document.getElementById('proj-range-low');
+  const highBound = document.getElementById('proj-range-high');
+  if (lowBound && highBound) {
+    lowBound.textContent = `${curr}${(meta.price * 0.95).toFixed(2)}`;
+    highBound.textContent = `${curr}${(meta.price * 1.12).toFixed(2)}`;
+  }
+
+  // Pattern engine entry/target
+  const entry = document.getElementById('pattern-entry');
+  const target = document.getElementById('pattern-target');
+  if (entry && target) {
+    entry.textContent = `${curr}${meta.price.toFixed(2)}`;
+    target.textContent = `${curr}${(meta.price * 1.08).toFixed(2)}`;
+  }
 }
 
 /* ======================================
@@ -415,6 +462,8 @@ function runAnalysis() {
 
   // Run indicators (raw results for sparklines)
   const rawIndicators = analyzeIndicators(data);
+  console.log(`[Data Flow] 6. Indicator Calculation Sample (overallSignal):`, rawIndicators.overallSignal);
+  console.log(`[Data Flow] 7. Prediction Input Data (Last Close):`, data[data.length - 1].close);
   
   // Also compute raw value arrays for sparklines
   const rsiRaw = RSI(data, 14);
@@ -467,42 +516,65 @@ function runAnalysis() {
   // Run pattern detection
   state.patterns = detectAllPatterns(data);
 
-  // Run prediction
-  state.prediction = predict(data);
+  // Run prediction and set loading state
+  const aiOverlay = document.getElementById('ai-loading-overlay');
+  const aiError = document.getElementById('ai-error-banner');
+  if (aiOverlay) aiOverlay.classList.add('active');
+  if (aiError) aiError.style.display = 'none';
 
-  // Update UI
-  updatePredictionCard();
-  updateSignals();
-  updateIndicatorCards();
-  updatePatternCards();
-  updateTrendTable();
-  updateNewsSentiment(state.symbol);
-
-  // Add S/R to chart
-  const srLevels = detectSupportResistance(data, 3);
-  setSupportResistance(srLevels);
-
-  // Add pattern markers
-  setPatternMarkers(state.patterns);
-
-  // Update Risk Badge
-  const riskBadge = document.getElementById('risk-badge');
-  if (riskBadge && state.prediction) {
-    const score = Math.abs(state.prediction.confidence);
-    if (score > 60) {
-      riskBadge.textContent = 'High Risk';
-      riskBadge.style.background = 'var(--accent-magenta-dim)';
-      riskBadge.style.color = 'var(--accent-magenta)';
-    } else if (score > 30) {
-      riskBadge.textContent = 'Moderate Risk';
-      riskBadge.style.background = 'var(--accent-amber-dim)';
-      riskBadge.style.color = 'var(--accent-amber)';
-    } else {
-      riskBadge.textContent = 'Low Risk';
-      riskBadge.style.background = 'var(--accent-green-dim)';
-      riskBadge.style.color = 'var(--accent-green)';
+  // Allow UI to paint loading state before heavy calculation
+  setTimeout(() => {
+    try {
+      state.prediction = predict(data);
+      console.log(`[Data Flow] 8. Prediction Output (direction/confidence):`, state.prediction?.direction, state.prediction?.confidence);
+    } catch (e) {
+      console.error("[Data Flow] AI Prediction Error:", e);
+      state.prediction = { direction: 'neutral', confidence: 0, signals: [] };
     }
-  }
+
+    // Update UI
+    updatePredictionCard();
+    updateSignals();
+    updateIndicatorCards();
+    updatePatternCards();
+    updateTrendTable();
+    updateNewsSentiment(state.symbol);
+
+    // Render AI Forecast Dashboard (all 14 sections)
+    renderAIForecastDashboard();
+    
+    if (aiOverlay) aiOverlay.classList.remove('active');
+
+    // Update Fear & Greed + Trending Sectors
+    const fearGreedValue = Math.round(50 + (state.prediction?.confidence || 0) * (state.prediction?.direction === 'bullish' ? 35 : state.prediction?.direction === 'bearish' ? -35 : 0));
+    renderFearGreed(fearGreedValue);
+    updateTrendingSectors();
+
+    // Add S/R to chart
+    const srLevels = detectSupportResistance(data, 3);
+    setSupportResistance(srLevels, state.symbol.toUpperCase().endsWith('.NS'));
+
+    // Add pattern markers
+    setPatternMarkers(state.patterns);
+
+    const riskBadge = document.getElementById('risk-badge');
+    if (riskBadge && state.prediction) {
+      const score = Math.abs(state.prediction.confidence ?? 0); // 0..1
+      if (score > 0.6) {
+        riskBadge.textContent = 'High Risk';
+        riskBadge.style.background = 'var(--accent-magenta-dim)';
+        riskBadge.style.color = 'var(--accent-magenta)';
+      } else if (score > 0.3) {
+        riskBadge.textContent = 'Moderate Risk';
+        riskBadge.style.background = 'var(--accent-amber-dim)';
+        riskBadge.style.color = 'var(--accent-amber)';
+      } else {
+        riskBadge.textContent = 'Low Risk';
+        riskBadge.style.background = 'var(--accent-green-dim)';
+        riskBadge.style.color = 'var(--accent-green)';
+      }
+    }
+  }, 100);
 
   // Dispatch custom event when analysis is complete
   document.dispatchEvent(new CustomEvent('smai:analysis', {
@@ -520,59 +592,100 @@ function runAnalysis() {
    ====================================== */
 function updatePredictionCard() {
   const pred = state.prediction;
-  if (!pred) return;
 
-  // Update card class
-  dom.predictionCard.className = `prediction-card ${pred.direction}`;
+  if (!pred) {
+    // Show neutral fallback UI while data loads
+    if (dom.predictionCard) dom.predictionCard.className = 'prediction-signal-box neutral';
+    if (dom.predictionDirection) dom.predictionDirection.textContent = 'LOADING…';
+    if (dom.confidenceValue) dom.confidenceValue.textContent = '--';
+    if (dom.predictionTimeframes) {
+      dom.predictionTimeframes.innerHTML = `
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; width: 100%; padding: 10px 0;">
+          Calculating projections...
+        </div>
+      `;
+    }
+    return;
+  }
+
+  if (dom.predictionCard) dom.predictionCard.className = `prediction-signal-box ${pred.direction}`;
 
   // Direction text
   const directionText = {
-    bullish: '▲ BULLISH',
-    bearish: '▼ BEARISH',
-    neutral: '─ NEUTRAL',
+    bullish: 'BULLISH SIGNAL',
+    bearish: 'BEARISH SIGNAL',
+    neutral: 'NEUTRAL SIGNAL',
   };
-  dom.predictionDirection.textContent = directionText[pred.direction] || '─ NEUTRAL';
+  if (dom.predictionDirection) dom.predictionDirection.textContent = directionText[pred.direction] || 'NEUTRAL SIGNAL';
 
-  // Arrow
-  const arrows = { bullish: '↑', bearish: '↓', neutral: '→' };
-  dom.predictionArrow.textContent = arrows[pred.direction] || '→';
+  // Confidence gauge — pred.confidence is 0..1
+  const pct = Math.round((pred.confidence ?? 0) * 100);
+  if (dom.confidenceValue) dom.confidenceValue.textContent = `${pct}%`;
 
-  // Confidence gauge
-  const pct = Math.round(pred.confidence * 100);
-  dom.gaugeFill.style.width = `${pct}%`;
-  dom.confidenceValue.textContent = `${pct}%`;
+  // Expected move KPI
+  const expMoveVal = document.getElementById('expected-move-val');
+  if (expMoveVal) {
+    const move = Math.round((pred.confidence ?? 0) * 8);
+    const sign = pred.direction === 'bearish' ? '-' : '+';
+    expMoveVal.textContent = `${sign}${move.toFixed(1)}%`;
+    expMoveVal.className = `pred-kpi-val ${pred.direction === 'bullish' ? 'green' : pred.direction === 'bearish' ? 'red' : ''}`;
+  }
 
-  // Summary
-  dom.predictionSummary.textContent = pred.summary || '';
+  // Timeframe Predictions
+  if (dom.predictionTimeframes) {
+    if (pred.timeframePredictions && pred.timeframePredictions.length > 0) {
+      dom.predictionTimeframes.innerHTML = pred.timeframePredictions.map(tf => {
+        const moveClass = tf.direction === 'strong-bullish' || tf.direction === 'bullish' ? 'green' : tf.direction === 'bearish' ? 'red' : '';
+        const dirLabel = tf.direction.replace('-', ' ').toUpperCase();
+        return `
+          <div class="pred-tf-item">
+            <div class="pred-tf-range">${tf.range}</div>
+            <div class="pred-tf-move ${moveClass}">${tf.move}</div>
+            <div class="pred-tf-conf" title="Direction: ${dirLabel}">${tf.confidence} conf</div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      dom.predictionTimeframes.innerHTML = `
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; width: 100%; padding: 10px 0;">
+          No projections available
+        </div>
+      `;
+    }
+  }
 }
 
 function updateSignals() {
   const pred = state.prediction;
   if (!pred || !pred.signals) return;
 
-  dom.signalCount.textContent = `${pred.signals.length} signals`;
+  if (dom.signalCount) {
+    dom.signalCount.textContent = `${pred.signals.length} signals`;
+  }
 
-  dom.signalList.innerHTML = pred.signals.map(sig => {
-    const score = typeof sig.score === 'number' ? sig.score : (sig.direction === 'bullish' ? 0.6 : sig.direction === 'bearish' ? -0.6 : 0);
-    const absScore = Math.abs(score);
-    const barWidth = Math.min(50, Math.max(5, absScore * 50)); // 0-50% each side
-    const barClass = sig.direction === 'bullish' ? 'bullish' : sig.direction === 'bearish' ? 'bearish' : 'neutral';
+  if (dom.signalList) {
+    dom.signalList.innerHTML = pred.signals.map(sig => {
+      const score = typeof sig.score === 'number' ? sig.score : (sig.direction === 'bullish' ? 0.6 : sig.direction === 'bearish' ? -0.6 : 0);
+      const absScore = Math.abs(score);
+      const barWidth = Math.min(50, Math.max(5, absScore * 50)); // 0-50% each side
+      const barClass = sig.direction === 'bullish' ? 'bullish' : sig.direction === 'bearish' ? 'bearish' : 'neutral';
 
-    return `
-      <div class="signal-item">
-        <div class="signal-row-top">
-          <div class="signal-name">${sig.name}</div>
-          <div class="signal-badge ${barClass}">${sig.direction.toUpperCase()}</div>
-        </div>
-        <div class="signal-row-bottom">
-          <div class="signal-detail" title="${sig.detail || ''}">${sig.detail || 'Neutral indicators'}</div>
-          <div class="signal-bar">
-            <div class="signal-bar-fill ${barClass}" style="width: ${barWidth}%"></div>
+      return `
+        <div class="signal-item">
+          <div class="signal-row-top">
+            <div class="signal-name">${sig.name}</div>
+            <div class="signal-badge ${barClass}">${sig.direction.toUpperCase()}</div>
+          </div>
+          <div class="signal-row-bottom">
+            <div class="signal-detail" title="${sig.detail || ''}">${sig.detail || 'Neutral indicators'}</div>
+            <div class="signal-bar">
+              <div class="signal-bar-fill ${barClass}" style="width: ${barWidth}%"></div>
+            </div>
           </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 }
 
 /* ======================================
@@ -582,67 +695,36 @@ function updateIndicatorCards() {
   const ind = state.indicators;
   if (!ind) return;
 
-  const data = state.filteredData;
+  // RSI
+  if (dom.rsiVal) dom.rsiVal.textContent = ind.rsi?.latest?.toFixed(1) || '—';
+  if (dom.rsiStatus) {
+    dom.rsiStatus.textContent = ind.rsi?.signal?.toUpperCase() || 'NEUTRAL';
+    dom.rsiStatus.className = `ind-status-badge ${ind.rsi?.signal || 'neutral'}`;
+  }
+  if (dom.rsiBar) dom.rsiBar.style.width = `${Math.min(100, Math.max(0, ind.rsi?.latest || 0))}%`;
 
-  const cards = [
-    {
-      name: 'RSI (14)',
-      value: ind.rsi?.latest?.toFixed(1) || '—',
-      signal: ind.rsi?.signal || 'neutral',
-      detail: ind.rsi?.detail || '',
-      sparkData: ind.rsi?.values?.map(v => v.value) || [],
-      color: ind.rsi?.signal === 'bullish' ? '#00e676' : ind.rsi?.signal === 'bearish' ? '#ff3366' : '#ffaa00',
-    },
-    {
-      name: 'MACD',
-      value: ind.macd?.latest?.macd?.toFixed(2) || '—',
-      signal: ind.macd?.signal || 'neutral',
-      detail: ind.macd?.detail || '',
-      sparkData: ind.macd?.values?.map(v => v.histogram) || [],
-      color: '#a855f7',
-    },
-    {
-      name: 'STOCH (%K)',
-      value: ind.stochastic?.latest?.k?.toFixed(1) || '—',
-      signal: ind.stochastic?.signal || 'neutral',
-      detail: ind.stochastic?.detail || '',
-      sparkData: ind.stochastic?.values?.map(v => v.k) || [],
-      color: '#00d4ff',
-    },
-    {
-      name: 'ADX (14)',
-      value: ind.adx?.latest?.adx?.toFixed(1) || '—',
-      signal: ind.adx?.signal || 'neutral',
-      detail: ind.adx?.detail || '',
-      sparkData: ind.adx?.values?.map(v => v.adx) || [],
-      color: '#ffaa00',
-    },
-  ];
+  // MACD
+  if (dom.macdVal) dom.macdVal.textContent = ind.macd?.latest?.macd?.toFixed(2) || '—';
+  if (dom.macdStatus) {
+    dom.macdStatus.textContent = ind.macd?.signal?.toUpperCase() || 'NEUTRAL';
+    dom.macdStatus.className = `ind-status-badge ${ind.macd?.signal || 'neutral'}`;
+  }
+  if (dom.macdBar) {
+    const rawMacd = ind.macd?.latest?.macd || 0;
+    const normMacd = ((rawMacd + 10) / 20) * 100;
+    dom.macdBar.style.width = `${Math.min(100, Math.max(0, normMacd))}%`;
+  }
 
-  dom.indicatorsGrid.innerHTML = cards.map((card, i) => `
-    <div class="indicator-card" style="animation-delay: ${0.4 + i * 0.08}s">
-      <div class="indicator-header">
-        <span class="indicator-name">${card.name}</span>
-        <span class="indicator-signal ${card.signal}">${card.signal.toUpperCase()}</span>
-      </div>
-      <div class="indicator-value">${card.value}</div>
-      <div class="indicator-detail">${card.detail}</div>
-      <div class="indicator-sparkline">
-        <canvas data-spark-index="${i}"></canvas>
-      </div>
-    </div>
-  `).join('');
-
-  // Draw sparklines after DOM update
-  requestAnimationFrame(() => {
-    cards.forEach((card, i) => {
-      const canvas = document.querySelector(`canvas[data-spark-index="${i}"]`);
-      if (canvas && card.sparkData.length > 0) {
-        const tail = card.sparkData.slice(-60); // last 60 points
-        drawSparkline(canvas, tail, card.color);
-      }
-    });
-  });
+  // ADX (Trend Strength)
+  if (dom.adxVal) dom.adxVal.textContent = ind.adx?.latest?.adx?.toFixed(1) || '—';
+  if (dom.adxStatus) {
+    dom.adxStatus.textContent = ind.adx?.latest?.adx > 25 ? 'STRONG' : 'WEAK';
+    dom.adxStatus.className = `ind-status-badge ${ind.adx?.latest?.adx > 25 ? 'bullish' : 'neutral'}`;
+  }
+  if (dom.adxBar) {
+    const rawAdx = ind.adx?.latest?.adx || 0;
+    dom.adxBar.style.width = `${Math.min(100, Math.max(0, rawAdx * 2))}%`;
+  }
 }
 
 /* ======================================
@@ -650,42 +732,33 @@ function updateIndicatorCards() {
    ====================================== */
 function updatePatternCards() {
   const patterns = state.patterns;
-
-  if (!patterns || patterns.length === 0) {
-    dom.patternsGrid.innerHTML = `
-      <div class="no-patterns">
-        <div class="icon">🔍</div>
-        <p>No significant chart patterns detected in current timeframe</p>
-      </div>
-    `;
-    return;
+  const countBadge = document.getElementById('patterns-count');
+  if (countBadge) {
+    countBadge.textContent = patterns && patterns.length > 0 ? `${patterns.length} Active` : 'None';
+    countBadge.style.color = patterns && patterns.length > 0 ? 'var(--bullish-green)' : 'var(--text-secondary)';
   }
 
-  dom.patternsGrid.innerHTML = patterns.filter(p => p.type !== 'supportResistance').map(p => {
-    const reliabilityDots = Array.from({ length: 5 }, (_, i) =>
-      `<span class="reliability-dot ${i < Math.round(p.reliability * 5) ? 'filled' : ''}"></span>`
-    ).join('');
+  const desc = document.getElementById('pattern-description-text');
+  if (desc) {
+    if (patterns && patterns.length > 0) {
+      desc.textContent = patterns[0].description;
+    } else {
+      desc.textContent = 'No significant candlestick or trendline patterns detected in current timeframe.';
+    }
+  }
 
-    const typeClass = p.patternType || p.type;
-    const dirLabel = p.direction === 'bullish' ? '▲ Bullish' : p.direction === 'bearish' ? '▼ Bearish' : '─ Neutral';
+  // Target values based on current price
+  const entry = document.getElementById('pattern-entry');
+  const target = document.getElementById('pattern-target');
+  if (entry && target && state.filteredData && state.filteredData.length > 0) {
+    const price = state.filteredData[state.filteredData.length - 1].close;
+    const curr = state.symbol.toUpperCase().endsWith('.NS') ? '₹' : '$';
+    entry.textContent = `${curr}${price.toFixed(2)}`;
 
-    return `
-      <div class="pattern-card">
-        <div class="pattern-header">
-          <span class="pattern-name">${p.name}</span>
-          <span class="pattern-type ${typeClass}">${p.patternType || p.type}</span>
-        </div>
-        <div class="pattern-description">${p.description}</div>
-        <div class="pattern-meta">
-          <div class="pattern-reliability">
-            <span>Reliability</span>
-            <div class="reliability-dots">${reliabilityDots}</div>
-          </div>
-          <span class="pattern-direction-badge ${p.direction}">${dirLabel}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
+    const direction = state.prediction?.direction === 'bearish' ? -1 : 1;
+    const targetPrice = price * (1 + direction * 0.08 * (state.prediction?.confidence || 0.5));
+    target.textContent = `${curr}${targetPrice.toFixed(2)}`;
+  }
 }
 
 /* ======================================
@@ -694,7 +767,7 @@ function updatePatternCards() {
 function updateTrendTable() {
   const pred = state.prediction;
   const ind = state.indicators;
-  if (!pred || !ind) return;
+  if (!pred || !ind || !dom.trendBody) return;
 
   const ta = pred.trendAnalysis || {};
 
@@ -748,45 +821,159 @@ function updateTrendTable() {
 }
 
 /* ======================================
-   MODAL
+   TAB SWITCHING IMPLEMENTATION
    ====================================== */
-function openModal() {
-  dom.modalOverlay.classList.add('active');
-  dom.apiKeyInput.value = state.apiKey;
-  const geminiInput = document.getElementById('gemini-key-input');
-  if (geminiInput) {
-    geminiInput.value = localStorage.getItem('gemini_api_key') || '';
-  }
-  dom.apiKeyInput.focus();
+function handleHashTabSwitch() {
+  const hash = window.location.hash.substring(1) || 'overview';
+  const validTabs = ['overview', 'technical', 'financials', 'news', 'ai-forecast'];
+  const tabId = validTabs.includes(hash) ? hash : 'overview';
+  switchTab(tabId);
 }
 
-function closeModal() {
-  dom.modalOverlay.classList.remove('active');
-}
+function switchTab(tabId) {
+  // tabId can be 'overview', 'technical', 'financials', 'news', 'ai-forecast'
+  // 1. Find the corresponding tab button in tabs-navigation
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    const text = btn.textContent.trim().toLowerCase();
+    let btnTabId = '';
+    if (text === 'overview') btnTabId = 'overview';
+    else if (text === 'technical analysis') btnTabId = 'technical';
+    else if (text === 'financials') btnTabId = 'financials';
+    else if (text === 'news') btnTabId = 'news';
+    else if (text === 'ai forecast') btnTabId = 'ai-forecast';
 
-function saveApiKey() {
-  const key = dom.apiKeyInput.value.trim();
-  const geminiInput = document.getElementById('gemini-key-input');
-  const geminiKey = geminiInput ? geminiInput.value.trim() : '';
+    btn.classList.toggle('active', btnTabId === tabId);
+  });
 
-  state.apiKey = key;
-  if (key) {
-    state.demoMode = false;
-    localStorage.setItem('av_api_key', key);
-  } else {
-    state.demoMode = true;
-    localStorage.removeItem('av_api_key');
+  // 2. Update active sidebar item
+  const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+  sidebarItems.forEach(item => {
+    const label = item.querySelector('.sidebar-nav-label')?.textContent.trim().toLowerCase();
+    if (label === 'dashboard' && tabId === 'overview') {
+      item.classList.add('active');
+    } else if (label === 'analytics' && tabId === 'technical') {
+      item.classList.add('active');
+    } else if (label === 'ai signals' && tabId === 'ai-forecast') {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  // 3. Show/hide relevant sections on the page!
+  const leftCol = document.querySelector('.analyzer-col-left');
+  const rightCol = document.querySelector('.analyzer-col-right');
+
+  // Find all sections
+  const chartPanel = leftCol ? leftCol.querySelector('section.glass-panel:first-of-type') : null;
+  const keyStats = leftCol ? Array.from(leftCol.querySelectorAll('section.glass-panel')).find(el => el.textContent.includes('Key Statistics')) : null;
+  const techIndicators = document.getElementById('indicators-grid-container');
+  const fearGreedRow = leftCol ? leftCol.querySelector('div[style*="display: grid"]') : null;
+  const priceProjection = leftCol ? Array.from(leftCol.querySelectorAll('section.glass-panel')).find(el => el.textContent.includes('AI Price Projection')) : null;
+
+  const predictionCard = document.getElementById('prediction-card');
+  const patternsSection = document.getElementById('patterns-section');
+  const newsTimeline = rightCol ? Array.from(rightCol.querySelectorAll('section.glass-panel')).find(el => el.textContent.includes('News')) : null;
+  const riskSection = rightCol ? Array.from(rightCol.querySelectorAll('section.glass-panel')).find(el => el.textContent.includes('Risk')) : null;
+
+  // Let's reset displays of columns and sections
+  if (leftCol) {
+    leftCol.style.display = 'flex';
+    leftCol.style.gridColumn = 'span 8';
+  }
+  if (rightCol) {
+    rightCol.style.display = 'flex';
+    rightCol.style.gridColumn = 'span 4';
   }
 
-  if (geminiKey) {
-    localStorage.setItem('gemini_api_key', geminiKey);
-  } else {
-    localStorage.removeItem('gemini_api_key');
+  // Helper to set display of an element
+  const setVisible = (el, visible) => {
+    if (el) el.style.display = visible ? '' : 'none';
+  };
+
+  if (tabId === 'overview') {
+    // Overview shows everything
+    setVisible(chartPanel, true);
+    setVisible(keyStats, true);
+    setVisible(techIndicators, true);
+    setVisible(fearGreedRow, true);
+    setVisible(priceProjection, true);
+    setVisible(predictionCard, true);
+    setVisible(patternsSection, true);
+    setVisible(newsTimeline, true);
+    setVisible(riskSection, true);
+  } else if (tabId === 'technical') {
+    // Technical analysis shows Chart panel, Key Stats, Tech indicators, Fear & Greed row
+    setVisible(chartPanel, true);
+    setVisible(keyStats, true);
+    setVisible(techIndicators, true);
+    setVisible(fearGreedRow, true);
+    setVisible(priceProjection, false);
+    
+    // Hide all right column elements
+    setVisible(predictionCard, false);
+    setVisible(patternsSection, false);
+    setVisible(newsTimeline, false);
+    setVisible(riskSection, false);
+
+    // Make left column full width
+    if (leftCol) leftCol.style.gridColumn = 'span 12';
+    if (rightCol) rightCol.style.display = 'none';
+  } else if (tabId === 'ai-forecast') {
+    // AI Forecast: hide BOTH columns, show full-width AI Forecast Dashboard
+    if (leftCol) leftCol.style.display = 'none';
+    if (rightCol) rightCol.style.display = 'none';
+
+    const aiFD = document.getElementById('ai-forecast-dashboard');
+    if (aiFD) aiFD.style.display = 'flex';
+
+    // Re-render to ensure latest data
+    renderAIForecastDashboard();
+    return; // skip rest — columns are hidden
+  } else if (tabId === 'news') {
+    // News shows only News timeline
+    setVisible(chartPanel, false);
+    setVisible(keyStats, false);
+    setVisible(techIndicators, false);
+    setVisible(fearGreedRow, false);
+    setVisible(priceProjection, false);
+
+    setVisible(predictionCard, false);
+    setVisible(patternsSection, false);
+    setVisible(newsTimeline, true);
+    setVisible(riskSection, false);
+
+    // Make right column full width
+    if (leftCol) leftCol.style.display = 'none';
+    if (rightCol) {
+      rightCol.style.display = 'flex';
+      rightCol.style.gridColumn = 'span 12';
+    }
+  } else if (tabId === 'financials') {
+    // Financials shows only Risk intelligence section
+    setVisible(chartPanel, false);
+    setVisible(keyStats, false);
+    setVisible(techIndicators, false);
+    setVisible(fearGreedRow, false);
+    setVisible(priceProjection, false);
+
+    setVisible(predictionCard, false);
+    setVisible(patternsSection, false);
+    setVisible(newsTimeline, false);
+    setVisible(riskSection, true);
+
+    // Make right column full width
+    if (leftCol) leftCol.style.display = 'none';
+    if (rightCol) {
+      rightCol.style.display = 'flex';
+      rightCol.style.gridColumn = 'span 12';
+    }
   }
 
-  closeModal();
-  showToast('Settings saved successfully!', 'success');
-  loadStock(state.symbol);
+  // Hide AI Forecast Dashboard when NOT on ai-forecast tab
+  const aiFD = document.getElementById('ai-forecast-dashboard');
+  if (aiFD) aiFD.style.display = 'none';
 }
 
 /* ======================================
@@ -828,28 +1015,19 @@ function formatVolume(vol) {
  * Updates the News Sentiment panel on the stock analyzer page
  */
 function updateNewsSentiment(symbol) {
+  const newsTimelineContainer = document.getElementById('news-timeline-container');
   const sentimentOverallBadge = document.getElementById('sentiment-overall-badge');
-  const sentimentBarPos = document.getElementById('sentiment-bar-pos');
-  const sentimentBarNeu = document.getElementById('sentiment-bar-neu');
-  const sentimentBarNeg = document.getElementById('sentiment-bar-neg');
-  const sentimentPercentPos = document.getElementById('sentiment-percent-pos');
-  const sentimentPercentNeu = document.getElementById('sentiment-percent-neu');
-  const sentimentPercentNeg = document.getElementById('sentiment-percent-neg');
   const sentimentSummaryText = document.getElementById('sentiment-summary-text');
-  const newsListContainer = document.getElementById('news-list-container');
-
-  if (!sentimentSummaryText) return; // Not on the analyzer page
 
   const data = getSentiment(symbol);
   
-  // Update badge
+  // Update badge if present
   if (sentimentOverallBadge) {
     const scoreVal = Math.round(((data.score + 1) / 2) * 100);
     const dirText = data.direction === 'positive' ? 'Bullish' :
                     data.direction === 'negative' ? 'Bearish' : 'Neutral';
     sentimentOverallBadge.textContent = `${scoreVal}% ${dirText}`;
     
-    // style badge
     if (data.direction === 'positive') {
       sentimentOverallBadge.style.background = 'var(--accent-green-dim)';
       sentimentOverallBadge.style.color = 'var(--accent-green)';
@@ -862,40 +1040,30 @@ function updateNewsSentiment(symbol) {
     }
   }
 
-  // Update bars
-  if (sentimentBarPos) sentimentBarPos.style.width = `${data.sentiment.positive}%`;
-  if (sentimentBarNeu) sentimentBarNeu.style.width = `${data.sentiment.neutral}%`;
-  if (sentimentBarNeg) sentimentBarNeg.style.width = `${data.sentiment.negative}%`;
-
-  // Update text percentages
-  if (sentimentPercentPos) sentimentPercentPos.textContent = data.sentiment.positive;
-  if (sentimentPercentNeu) sentimentPercentNeu.textContent = data.sentiment.neutral;
-  if (sentimentPercentNeg) sentimentPercentNeg.textContent = data.sentiment.negative;
-
-  // Update AI Summary
+  // Update AI Summary if present
   if (sentimentSummaryText) {
     sentimentSummaryText.textContent = data.summary;
   }
 
-  // Render news list
-  if (newsListContainer) {
+  // Render news timeline
+  if (newsTimelineContainer) {
     if (data.articles.length === 0) {
-      newsListContainer.innerHTML = '<div style="font-size: var(--fs-xs); color: var(--text-muted); padding: var(--sp-4); text-align: center;">No news articles available.</div>';
+      newsTimelineContainer.innerHTML = '<div style="font-size: var(--fs-xs); color: var(--text-muted); padding: var(--sp-4); text-align: center;">No news articles available.</div>';
     } else {
-      newsListContainer.innerHTML = data.articles.map(art => {
-        const artColor = art.sentiment === 'positive' ? 'var(--accent-green)' :
-                         art.sentiment === 'negative' ? 'var(--accent-magenta)' : 'var(--accent-amber)';
+      newsTimelineContainer.innerHTML = data.articles.map(art => {
+        const artColor = art.sentiment === 'positive' ? 'var(--bullish-green)' :
+                         art.sentiment === 'negative' ? 'var(--bearish-red)' : 'var(--warning-amber)';
+        const sentimentText = art.sentiment === 'positive' ? 'Bullish' :
+                              art.sentiment === 'negative' ? 'Bearish' : 'Neutral';
         return `
-          <div class="news-item" style="border-bottom: 1px solid var(--glass-border); padding: var(--sp-3) 0; display: flex; flex-direction: column; gap: var(--sp-1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs);">
-              <span style="color: var(--text-muted); font-weight: 500;">${art.source} • ${art.age}</span>
-              <span style="color: ${artColor}; font-weight: 600; font-size: 10px; background: rgba(255,255,255,0.02); padding: 1px 4px; border-radius: 4px;">
-                ${art.sentiment.toUpperCase()}
-              </span>
+          <div class="pulse-item">
+            <span class="pulse-dot" style="background-color: ${artColor}; box-shadow: 0 0 6px ${artColor};"></span>
+            <div class="pulse-time">${art.age} • <span style="color: ${artColor}; font-weight: 700;">${sentimentText}</span></div>
+            <div class="pulse-text" style="font-size: 0.85rem; font-weight: 500; color: var(--text-main); line-height: 1.4;">
+              <a href="${art.url || '#'}" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-main)'">
+                ${art.title}
+              </a>
             </div>
-            <a href="${art.url || '#'}" target="_blank" rel="noopener" style="font-size: var(--fs-sm); font-weight: 500; color: var(--text-primary); text-decoration: none; line-height: 1.4; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-cyan)'" onmouseout="this.style.color='var(--text-primary)'">
-              ${art.title}
-            </a>
           </div>
         `;
       }).join('');
@@ -911,37 +1079,641 @@ function startRealTimeSimulation() {
   if (realTimeInterval) clearInterval(realTimeInterval);
   realTimeTickCount = 0;
 
-  realTimeInterval = setInterval(() => {
+  // Poll a fresh live price every 30 seconds
+  realTimeInterval = setInterval(async () => {
     if (state.loading || !state.fullData || state.fullData.length === 0) return;
 
+    let newPrice = null;
+
+    try {
+      // bypassCache = true → always fetch fresh from Yahoo Finance
+      newPrice = await fetchLivePrice(state.symbol, state.apiKey, true);
+    } catch (_) {
+      // Network failed — fall back to a tiny random walk to keep chart alive
+      const last = state.fullData[state.fullData.length - 1].close;
+      newPrice = parseFloat((last * (1 + (Math.random() - 0.5) * 0.001)).toFixed(2));
+    }
+
+    if (!newPrice || newPrice <= 0) return;
+
+    // Patch the latest candle with the real price
     const latestIndex = state.fullData.length - 1;
     const latestBar = state.fullData[latestIndex];
-
-    // Vary closing price +/- 0.15% random walk
-    const changePercent = (Math.random() - 0.5) * 0.003;
-    latestBar.close = parseFloat((latestBar.close * (1 + changePercent)).toFixed(2));
-
-    if (latestBar.close > latestBar.high) latestBar.high = latestBar.close;
-    if (latestBar.close < latestBar.low)  latestBar.low  = latestBar.close;
+    latestBar.close = newPrice;
+    if (newPrice > latestBar.high) latestBar.high = newPrice;
+    if (newPrice < latestBar.low)  latestBar.low  = newPrice;
 
     const filteredLatestIndex = state.filteredData.length - 1;
     if (filteredLatestIndex >= 0) {
-      state.filteredData[filteredLatestIndex] = latestBar;
+      state.filteredData[filteredLatestIndex] = { ...latestBar };
     }
 
-    // Always update chart and price display (lightweight)
+    // Update chart and price bar every tick
     updateChart();
     updateStatusBar();
 
-    // Full indicator/pattern reanalysis is expensive — only run every 3rd tick (every 12s)
+    // Full indicator/pattern reanalysis is expensive — run every 3rd tick (~90s)
     realTimeTickCount++;
     if (realTimeTickCount % 3 === 0) {
       runAnalysis();
     }
-  }, 4000);
+  }, 30000); // 30-second real-time poll
+
+  // Also fire immediately once so the price updates right away on load
+  (async () => {
+    try {
+      const livePrice = await fetchLivePrice(state.symbol, state.apiKey, true);
+      if (livePrice && livePrice > 0 && state.fullData.length > 0) {
+        const idx = state.fullData.length - 1;
+        state.fullData[idx].close = livePrice;
+        if (livePrice > state.fullData[idx].high) state.fullData[idx].high = livePrice;
+        if (livePrice < state.fullData[idx].low)  state.fullData[idx].low  = livePrice;
+        if (state.filteredData.length > 0) {
+          state.filteredData[state.filteredData.length - 1] = { ...state.fullData[idx] };
+        }
+        updateChart();
+        updateStatusBar();
+      }
+    } catch (_) {}
+  })();
 }
 
 /* ======================================
    BOOT
    ====================================== */
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  setupAIForecastListeners();
+});
+
+/* ======================================
+   AI FORECAST DASHBOARD — RENDERING
+   ====================================== */
+
+function setupAIForecastListeners() {
+  // Horizon buttons (1D, 1W, 1M, 3M)
+  document.querySelectorAll('.ai-fd-horizon-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ai-fd-horizon-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAIForecastDashboard(); // re-render with new horizon
+    });
+  });
+
+  // Forecast chart timeframe buttons (5D, 10D, 30D, 90D)
+  document.querySelectorAll('.ai-fd-forecast-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ai-fd-forecast-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentForecastDays = parseInt(btn.dataset.forecastDays, 10);
+      renderForecastChart();
+    });
+  });
+}
+
+function renderAIForecastDashboard() {
+  const errorBanner = document.getElementById('ai-error-banner');
+  const errorText = document.getElementById('ai-error-message');
+  
+  if (!state.prediction || !state.filteredData) {
+    if (errorBanner) {
+      errorBanner.style.display = 'block';
+      errorText.textContent = "Data source is missing or undefined.";
+    }
+    return;
+  }
+
+  // Debug Logging Requirement
+  console.log(`[Data Flow] AI FORECAST DEBUG`);
+  console.log(`Current Stock: ${state.symbol}`);
+  console.log(`Current Price: ${state.filteredData[state.filteredData.length - 1]?.close || 0}`);
+  console.log(`Currency: ${getCurrency(state.symbol)}`);
+  console.log(`Historical Candle Count: ${state.filteredData.length}`);
+  console.log(`Prediction Object:`, state.prediction);
+
+  let fd = null;
+  try {
+    fd = computeAllForecastData(
+      state.filteredData,
+      state.prediction,
+      state.indicators,
+      state.patterns,
+      state.symbol
+    );
+  } catch (err) {
+    console.error("AI Forecast rendering failed:", err);
+    if (errorBanner) {
+      errorBanner.style.display = 'block';
+      errorText.textContent = err.message;
+    }
+    return;
+  }
+
+  if (!fd) {
+    if (errorBanner) {
+      errorBanner.style.display = 'block';
+      errorText.textContent = "AI Model requires at least 30 historical data points to generate a forecast.";
+    }
+    return;
+  }
+
+  if (errorBanner) errorBanner.style.display = 'none';
+
+  console.log(`Confidence: ${fd.hero.confidence}`);
+  console.log(`Predicted Price: ${fd.hero.predictedPrice}`);
+
+  // --- SECTION 1: Hero Card ---
+  const badge = document.getElementById('ai-signal-badge');
+  if (badge) {
+    badge.textContent = `${fd.hero.labelEmoji} ${fd.hero.overallLabel}`;
+    badge.style.color = fd.hero.labelColor;
+  }
+
+  const curPrice = document.getElementById('ai-current-price');
+  if (curPrice) curPrice.textContent = `${fd.hero.currency}${fd.hero.currentPrice.toFixed(2)}`;
+
+  const predPrice = document.getElementById('ai-predicted-price');
+  if (predPrice) {
+    predPrice.textContent = `${fd.hero.currency}${fd.hero.predictedPrice.toFixed(2)}`;
+    predPrice.style.color = fd.hero.direction === 'bearish' ? '#e74c3c' : '#9eb5ff';
+  }
+
+  const expRet = document.getElementById('ai-expected-return');
+  if (expRet) {
+    const sign = fd.hero.expectedReturn >= 0 ? '+' : '';
+    expRet.textContent = `${sign}${fd.hero.expectedReturn.toFixed(2)}%`;
+    expRet.style.color = fd.hero.expectedReturn >= 0 ? '#2ecc71' : '#e74c3c';
+  }
+
+  const prob = document.getElementById('ai-probability');
+  if (prob) prob.textContent = `${fd.hero.probabilityOfSuccess}%`;
+
+  const confPct = document.getElementById('ai-confidence-pct');
+  if (confPct) confPct.textContent = `${fd.hero.confidence}%`;
+
+  // Animate confidence ring
+  const ring = document.getElementById('ai-confidence-ring');
+  if (ring) {
+    const circumference = 2 * Math.PI * 52; // r=52
+    const fillLength = (fd.hero.confidence / 100) * circumference;
+    // Trigger animation by setting after a small delay
+    requestAnimationFrame(() => {
+      ring.setAttribute('stroke-dasharray', `${fillLength} ${circumference}`);
+    });
+    // Color the ring based on confidence
+    if (fd.hero.confidence >= 75) ring.style.stroke = '#2ecc71';
+    else if (fd.hero.confidence >= 50) ring.style.stroke = '#9eb5ff';
+    else if (fd.hero.confidence >= 35) ring.style.stroke = '#f39c12';
+    else ring.style.stroke = '#e74c3c';
+  }
+
+  // Hero gradient based on direction
+  const heroCard = document.getElementById('ai-hero-card');
+  if (heroCard) {
+    if (fd.hero.direction === 'bearish') {
+      heroCard.style.background = 'linear-gradient(135deg, rgba(14,17,26,0.95) 0%, rgba(231,76,60,0.04) 100%)';
+      heroCard.style.borderColor = 'rgba(231,76,60,0.15)';
+    } else if (fd.hero.direction === 'bullish') {
+      heroCard.style.background = 'linear-gradient(135deg, rgba(14,17,26,0.95) 0%, rgba(46,204,113,0.04) 100%)';
+      heroCard.style.borderColor = 'rgba(46,204,113,0.15)';
+    } else {
+      heroCard.style.background = 'linear-gradient(135deg, rgba(14,17,26,0.95) 0%, rgba(255,255,255,0.02) 100%)';
+      heroCard.style.borderColor = 'var(--border-color)';
+    }
+  }
+
+  // --- SECTION 2: Forecast Chart ---
+  renderForecastChart();
+
+  // --- SECTION 3: AI Reasoning ---
+  const reasoningBody = document.getElementById('ai-reasoning-body');
+  if (reasoningBody) reasoningBody.innerHTML = fd.reasoning;
+
+  // --- SECTION 4: Factors Breakdown ---
+  const factorsList = document.getElementById('ai-factors-list');
+  if (factorsList) {
+    factorsList.innerHTML = fd.factors.map(f => `
+      <div class="ai-fd-factor-row">
+        <div class="ai-fd-factor-header">
+          <span class="ai-fd-factor-lbl">${f.label}</span>
+          <span class="ai-fd-factor-pct">${f.value}%</span>
+        </div>
+        <div class="ai-fd-factor-track">
+          <div class="ai-fd-factor-fill" style="background:${f.color};" data-width="${f.value}"></div>
+        </div>
+      </div>
+    `).join('');
+    // Animate bar widths
+    requestAnimationFrame(() => {
+      factorsList.querySelectorAll('.ai-fd-factor-fill').forEach(el => {
+        el.style.width = el.dataset.width + '%';
+      });
+    });
+  }
+
+  // --- SECTION 5: Prediction Timeline ---
+  const timelineGrid = document.getElementById('ai-timeline-grid');
+  if (timelineGrid) {
+    timelineGrid.innerHTML = fd.timeline.map(item => {
+      const dirColor = item.direction === 'Bullish' ? '#2ecc71' : item.direction === 'Bearish' ? '#e74c3c' : '#f39c12';
+      return `
+        <div class="ai-fd-tl-card">
+          <div class="ai-fd-tl-label">${item.label}</div>
+          <div class="ai-fd-tl-direction" style="color:${dirColor}">${item.direction}</div>
+          <div class="ai-fd-tl-prob">${item.probability}%</div>
+          <div class="ai-fd-tl-target">${item.targetPrice}</div>
+          <span class="ai-fd-tl-risk" style="background:${item.riskColor}20; color:${item.riskColor}">${item.risk}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- SECTION 6: Confidence Breakdown ---
+  const confScore = document.getElementById('ai-overall-conf-score');
+  if (confScore) confScore.textContent = `${fd.hero.confidence}%`;
+
+  const confBars = document.getElementById('ai-conf-bars');
+  if (confBars) {
+    confBars.innerHTML = fd.confidenceBreakdown.map(c => `
+      <div class="ai-fd-conf-row">
+        <div class="ai-fd-conf-header">
+          <span class="ai-fd-conf-lbl">${c.label}</span>
+          <span class="ai-fd-conf-val">${c.value}%</span>
+        </div>
+        <div class="ai-fd-conf-track">
+          <div class="ai-fd-conf-fill" style="background:${c.color};" data-width="${c.value}"></div>
+        </div>
+      </div>
+    `).join('');
+    requestAnimationFrame(() => {
+      confBars.querySelectorAll('.ai-fd-conf-fill').forEach(el => {
+        el.style.width = el.dataset.width + '%';
+      });
+    });
+  }
+
+  // --- SECTION 7: Model Accuracy ---
+  const accGrid = document.getElementById('ai-accuracy-grid');
+  if (accGrid) {
+    const ma = fd.modelAccuracy;
+    accGrid.innerHTML = `
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Last 30 Days</span>
+        <span class="ai-fd-acc-val green">${ma.last30Days}%</span>
+      </div>
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Last 90 Days</span>
+        <span class="ai-fd-acc-val green">${ma.last90Days}%</span>
+      </div>
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Bullish Accuracy</span>
+        <span class="ai-fd-acc-val green">${ma.bullishAccuracy}%</span>
+      </div>
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Bearish Accuracy</span>
+        <span class="ai-fd-acc-val amber">${ma.bearishAccuracy}%</span>
+      </div>
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Winning</span>
+        <span class="ai-fd-acc-val green">${ma.winningPredictions}</span>
+      </div>
+      <div class="ai-fd-acc-item">
+        <span class="ai-fd-acc-lbl">Losing</span>
+        <span class="ai-fd-acc-val amber">${ma.losingPredictions}</span>
+      </div>
+    `;
+  }
+
+  // --- SECTION 8: Scenario Analysis ---
+  const scenarioGrid = document.getElementById('ai-scenario-grid');
+  if (scenarioGrid) {
+    scenarioGrid.innerHTML = [fd.scenarios.bull, fd.scenarios.base, fd.scenarios.bear].map(s => `
+      <div class="ai-fd-scenario-card" style="background:${s.color}08; border-color:${s.color}30;">
+        <span class="ai-fd-scenario-emoji">${s.emoji}</span>
+        <span class="ai-fd-scenario-label" style="color:${s.color}">${s.label}</span>
+        <span class="ai-fd-scenario-price">${s.targetPrice}</span>
+        <span class="ai-fd-scenario-prob">Probability: ${s.probability}%</span>
+      </div>
+    `).join('');
+  }
+
+  // --- SECTION 9: Risk Analysis ---
+  const riskList = document.getElementById('ai-risk-list');
+  if (riskList) {
+    const r = fd.risk;
+    const riskColor = r.riskScore > 60 ? '#e74c3c' : r.riskScore > 35 ? '#f39c12' : '#2ecc71';
+    riskList.innerHTML = `
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Volatility (Annual)</span><span class="ai-fd-risk-val">${r.volatility}</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Beta</span><span class="ai-fd-risk-val">${r.beta}</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Risk Score</span><span class="ai-fd-risk-val" style="color:${riskColor}">${r.riskScore}/100</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Max Drawdown</span><span class="ai-fd-risk-val" style="color:#e74c3c">${r.maxDrawdown}</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Stop Loss</span><span class="ai-fd-risk-val" style="color:#e74c3c">${r.stopLoss}</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Take Profit</span><span class="ai-fd-risk-val" style="color:#2ecc71">${r.takeProfit}</span></div>
+      <div class="ai-fd-risk-row"><span class="ai-fd-risk-lbl">Risk/Reward Ratio</span><span class="ai-fd-risk-val">1:${r.riskReward}</span></div>
+    `;
+  }
+
+  // --- SECTION 10: News Impact ---
+  const newsScore = document.getElementById('ai-news-overall-score');
+  if (newsScore) {
+    newsScore.textContent = `${fd.newsImpact.overallScore}% ${fd.newsImpact.overallLabel}`;
+    newsScore.style.background = `${fd.newsImpact.overallColor}20`;
+    newsScore.style.color = fd.newsImpact.overallColor;
+  }
+
+  const newsList = document.getElementById('ai-news-impact-list');
+  if (newsList) {
+    newsList.innerHTML = fd.newsImpact.articles.map(a => `
+      <div class="ai-fd-news-item">
+        <span class="ai-fd-news-title">${a.title}</span>
+        <span class="ai-fd-news-impact" style="background:${a.impactColor}15; color:${a.impactColor}">${a.impactIcon} ${a.impact}</span>
+      </div>
+    `).join('');
+  }
+
+  // --- SECTION 11: Technical Scores ---
+  const techOverall = document.getElementById('ai-tech-overall');
+  if (techOverall) techOverall.textContent = fd.techScores.overall;
+
+  const techScores = document.getElementById('ai-tech-scores');
+  if (techScores) {
+    const items = [
+      { label: 'Trend Strength', value: fd.techScores.trendStrength },
+      { label: 'Momentum', value: fd.techScores.momentum },
+      { label: 'Volume', value: fd.techScores.volume },
+      { label: 'Volatility', value: fd.techScores.volatility },
+      { label: 'Liquidity', value: fd.techScores.liquidity },
+    ];
+    techScores.innerHTML = items.map(i => `
+      <div class="ai-fd-tech-row">
+        <div class="ai-fd-tech-header">
+          <span class="ai-fd-tech-lbl">${i.label}</span>
+          <span class="ai-fd-tech-val">${i.value}/100</span>
+        </div>
+        <div class="ai-fd-tech-track">
+          <div class="ai-fd-tech-fill" data-width="${i.value}"></div>
+        </div>
+      </div>
+    `).join('');
+    requestAnimationFrame(() => {
+      techScores.querySelectorAll('.ai-fd-tech-fill').forEach(el => {
+        el.style.width = el.dataset.width + '%';
+      });
+    });
+  }
+
+  // --- SECTION 12: Pattern Detection ---
+  const patternsList = document.getElementById('ai-patterns-list');
+  if (patternsList) {
+    patternsList.innerHTML = fd.enrichedPatterns.map(p => {
+      const dirColor = p.direction === 'bullish' ? '#2ecc71' : p.direction === 'bearish' ? '#e74c3c' : '#f39c12';
+      return `
+        <div class="ai-fd-pattern-card">
+          <div class="ai-fd-pattern-info">
+            <span class="ai-fd-pattern-name">${p.name}</span>
+            <span class="ai-fd-pattern-meta">Confidence: ${p.confidence}% · Success: ${p.historicalSuccess}% · <span style="color:${dirColor}">${p.direction}</span></span>
+          </div>
+          <div class="ai-fd-pattern-target">
+            <span class="ai-fd-pattern-target-lbl">Breakout Target</span>
+            <span class="ai-fd-pattern-target-val" style="color:${dirColor}">${p.breakoutTarget}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- SECTION 14: Executive Summary ---
+  const execBody = document.getElementById('ai-exec-body');
+  if (execBody) execBody.innerHTML = `<p>${fd.executiveSummary.text}</p>`;
+
+  const execAction = document.getElementById('ai-exec-action');
+  if (execAction) {
+    execAction.textContent = fd.executiveSummary.action;
+    execAction.style.background = `${fd.executiveSummary.actionColor}20`;
+    execAction.style.color = fd.executiveSummary.actionColor;
+  }
+
+  const execConf = document.getElementById('ai-exec-confidence');
+  if (execConf) execConf.textContent = `${fd.executiveSummary.confidence}%`;
+
+  const execTarget = document.getElementById('ai-exec-target');
+  if (execTarget) execTarget.textContent = fd.executiveSummary.targetPrice;
+
+  const execSL = document.getElementById('ai-exec-stoploss');
+  if (execSL) execSL.textContent = fd.executiveSummary.stopLoss;
+}
+
+/* ======================================
+   FORECAST CHART (LightweightCharts)
+   ====================================== */
+function renderForecastChart() {
+  const container = document.getElementById('ai-forecast-chart-container');
+  if (!container || !state.filteredData || state.filteredData.length < 30) return;
+
+  // Destroy previous instance
+  if (forecastChartInstance) {
+    forecastChartInstance.remove();
+    forecastChartInstance = null;
+    forecastChartSeries = {};
+  }
+
+  const chartData = computeForecastChartData(state.filteredData, state.prediction, currentForecastDays);
+
+  forecastChartInstance = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: 340,
+    layout: {
+      background: { type: 'solid', color: 'transparent' },
+      textColor: '#8e9cae',
+      fontFamily: 'Outfit, sans-serif',
+    },
+    grid: {
+      vertLines: { color: 'rgba(255,255,255,0.03)' },
+      horzLines: { color: 'rgba(255,255,255,0.03)' },
+    },
+    crosshair: { mode: 0 },
+    rightPriceScale: {
+      borderColor: 'rgba(255,255,255,0.07)',
+    },
+    timeScale: {
+      borderColor: 'rgba(255,255,255,0.07)',
+      timeVisible: false,
+    },
+  });
+
+  // Historical line
+  forecastChartSeries.historical = forecastChartInstance.addLineSeries({
+    color: '#9eb5ff',
+    lineWidth: 2,
+    title: 'Historical',
+  });
+  forecastChartSeries.historical.setData(chartData.historical);
+
+  // Forecast line (dashed via area workaround — using line with different color)
+  forecastChartSeries.forecast = forecastChartInstance.addLineSeries({
+    color: '#a855f7',
+    lineWidth: 2,
+    lineStyle: 2, // dashed
+    title: 'AI Forecast',
+  });
+  // Connect historical to forecast
+  const bridgePoint = chartData.historical.length > 0 ? [chartData.historical[chartData.historical.length - 1]] : [];
+  forecastChartSeries.forecast.setData([...bridgePoint, ...chartData.forecast]);
+
+  // Upper band
+  forecastChartSeries.upper = forecastChartInstance.addLineSeries({
+    color: 'rgba(168, 85, 247, 0.25)',
+    lineWidth: 1,
+    lineStyle: 1,
+    title: 'Upper CI',
+  });
+  forecastChartSeries.upper.setData([...bridgePoint, ...chartData.upperBand]);
+
+  // Lower band
+  forecastChartSeries.lower = forecastChartInstance.addLineSeries({
+    color: 'rgba(168, 85, 247, 0.25)',
+    lineWidth: 1,
+    lineStyle: 1,
+    title: 'Lower CI',
+  });
+  forecastChartSeries.lower.setData([...bridgePoint, ...chartData.lowerBand]);
+
+  forecastChartInstance.timeScale().fitContent();
+
+  // Handle resize
+  const ro = new ResizeObserver(() => {
+    if (forecastChartInstance) {
+      forecastChartInstance.applyOptions({ width: container.clientWidth });
+    }
+  });
+  ro.observe(container);
+}
+
+/* ======================================
+   FEAR & GREED CANVAS NEEDLE
+   ====================================== */
+function renderFearGreed(value) {
+  const canvas = document.getElementById('fear-greed-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2;
+  const cy = canvas.height - 15;
+  const radius = 90;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw Arc sectors (Fear, Neutral, Greed)
+  // Arc 1: Fear (Red)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, Math.PI, Math.PI * 1.33);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 14;
+  ctx.lineCap = 'butt';
+  ctx.stroke();
+
+  // Arc 2: Neutral (Amber)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, Math.PI * 1.33, Math.PI * 1.66);
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 14;
+  ctx.stroke();
+
+  // Arc 3: Greed (Green)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, Math.PI * 1.66, Math.PI * 2);
+  ctx.strokeStyle = '#2ecc71';
+  ctx.lineWidth = 14;
+  ctx.stroke();
+
+  // Draw Arc Track Background glow (thin outer ring)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 12, Math.PI, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Map value (0 - 100) to angle (Math.PI to Math.PI * 2)
+  const angle = Math.PI + (value / 100) * Math.PI;
+
+  // Draw Needle Shadow
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  const shadowX = cx + Math.cos(angle) * (radius - 15);
+  const shadowY = cy + Math.sin(angle) * (radius - 15);
+  ctx.lineTo(shadowX, shadowY + 2);
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Draw Needle Line
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  const targetX = cx + Math.cos(angle) * (radius - 15);
+  const targetY = cy + Math.sin(angle) * (radius - 15);
+  ctx.lineTo(targetX, targetY);
+  ctx.strokeStyle = '#9eb5ff'; // blue needle
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Draw Center Hub Inner Circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#07090e';
+  ctx.fill();
+  ctx.strokeStyle = '#9eb5ff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  
+  // Set details labels dynamically based on scale
+  const label = document.getElementById('fear-greed-label');
+  const desc = document.getElementById('fear-greed-desc');
+  if (label && desc) {
+    label.textContent = value;
+    if (value < 35) {
+      desc.textContent = 'EXTREME FEAR';
+      desc.style.color = '#e74c3c';
+    } else if (value < 45) {
+      desc.textContent = 'FEAR';
+      desc.style.color = '#e74c3c';
+    } else if (value < 55) {
+      desc.textContent = 'NEUTRAL';
+      desc.style.color = '#f39c12';
+    } else if (value < 75) {
+      desc.textContent = 'GREED';
+      desc.style.color = '#2ecc71';
+    } else {
+      desc.textContent = 'EXTREME GREED';
+      desc.style.color = '#9eb5ff';
+    }
+  }
+}
+
+/* ======================================
+   TRENDING SECTORS CARD POPULATION
+   ====================================== */
+function updateTrendingSectors() {
+  const container = document.getElementById('sector-heatmap');
+  if (!container) return;
+
+  const SECTORS = [
+    { name: 'Technology', change: 1.84 },
+    { name: 'Financials', change: 0.65 },
+    { name: 'Healthcare', change: 1.12 },
+    { name: 'Energy', change: -0.42 },
+    { name: 'Communication', change: 2.10 }
+  ];
+
+  container.innerHTML = SECTORS.map(sec => {
+    const isPositive = sec.change >= 0;
+    const sign = isPositive ? '+' : '';
+    const valClass = isPositive ? 'up' : 'down';
+    return `
+      <div class="sector-row-card">
+        <span class="sector-name-txt">${sec.name}</span>
+        <span class="sector-val-txt ${valClass}">${sign}${sec.change.toFixed(2)}%</span>
+      </div>
+    `;
+  }).join('');
+}

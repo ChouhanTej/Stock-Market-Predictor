@@ -2,7 +2,6 @@
  * Chart Rendering Module
  * TradingView Lightweight Charts wrapper with indicator overlays
  */
-
 // Chart theme matching app design system
 const CHART_THEME = {
   layout: {
@@ -261,7 +260,7 @@ export function removeOverlay(key) {
  * Add support/resistance horizontal lines
  * @param {Array} levels - Array of {level, type}
  */
-export function setSupportResistance(levels) {
+export function setSupportResistance(levels, isIndian = false) {
   // Remove existing S/R price lines
   if (candleSeries) {
     activePriceLines.forEach(line => {
@@ -272,6 +271,8 @@ export function setSupportResistance(levels) {
 
   if (!levels || levels.length === 0 || !candleSeries) return;
 
+  const curr = isIndian ? '₹' : '$';
+
   levels.forEach((sr, i) => {
     const priceLine = candleSeries.createPriceLine({
       price: sr.level,
@@ -279,7 +280,7 @@ export function setSupportResistance(levels) {
       lineWidth: 1.5,
       lineStyle: 2,
       axisLabelVisible: true,
-      title: sr.type === 'support' ? `Support: ₹${sr.level.toFixed(1)}` : `Resist: ₹${sr.level.toFixed(1)}`,
+      title: sr.type === 'support' ? `Support: ${curr}${sr.level.toFixed(1)}` : `Resist: ${curr}${sr.level.toFixed(1)}`,
     });
 
     activePriceLines.push(priceLine);

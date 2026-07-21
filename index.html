@@ -6,131 +6,231 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SMAI — Next-generation AI-powered stock trend analyzer and predictive analytics platform.">
-  <title>SMAI — AI-Powered Stock Prediction & Analytics</title>
+  <meta name="description" content="Share Market AI — Next-generation AI-powered stock trend analyzer and predictive analytics platform.">
+  <title>Share Market AI — AI-Powered Stock Prediction & Analytics</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
-  <link rel="stylesheet" href="index.css?v=20250528b">
+  <link rel="stylesheet" href="index.css?v=20260712">
 </head>
 <body class="landing-body">
 
-  <!-- ====== BACKGROUND ANIMATION CANVAS ====== -->
-  <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh; pointer-events: none; z-index: 0;"></canvas>
+  <!-- Background animation canvas -->
+  <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.45;"></canvas>
 
   <div class="landing-wrapper" style="position: relative; z-index: 1;">
     
-    <!-- ====== NAVIGATION ====== -->
+    <!-- NAVIGATION -->
     <header class="landing-nav-header">
-      <div class="app-logo">
-        <span class="logo-icon" style="font-size: 1.8rem;">📈</span>
-        <div class="logo-text">
-          <h1 style="font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px;">SMAI</h1>
-          <span style="font-size: 0.65rem;">Smart Market AI</span>
-        </div>
+      <div class="sidebar-logo">
+        <span class="sidebar-logo-icon">✨</span>
+        <span class="sidebar-logo-text">Share Market AI</span>
       </div>
       <nav class="landing-nav-links">
-        <a href="#features" class="landing-nav-link">Features</a>
-        <a href="dashboard.html" class="landing-nav-link">Market Dashboard</a>
+        <a href="dashboard.html" class="landing-nav-link">Markets</a>
+        <a href="analyzer.html" class="landing-nav-link">Predictions</a>
+        <a href="dashboard.html" class="landing-nav-link">Watchlist</a>
+        <a href="analyzer.html" class="landing-nav-link">Screener</a>
       </nav>
-      <div class="header-actions">
-        <a href="analyzer.html" class="btn-primary" style="text-decoration: none; font-size: var(--fs-xs); padding: var(--sp-2) var(--sp-4);">Get Started</a>
+      <div class="landing-hero-ctas">
+        <a href="analyzer.html" class="landing-nav-link" style="padding: 10px 16px;">Log In</a>
+        <a href="analyzer.html" class="btn-primary">Sign Up</a>
       </div>
     </header>
 
-    <!-- ====== LIVE TICKER STRIP ====== -->
-    <div class="ticker-wrap">
-      <div class="ticker-scroll" id="ticker-strip">
-        <!-- Filled dynamically by landing.js -->
-      </div>
-    </div>
+    <!-- HERO SECTION -->
+    <section class="landing-hero-grid">
+      <div class="landing-hero-content">
 
-    <!-- ====== HERO SECTION ====== -->
-    <section class="landing-hero">
-      <div class="hero-glow-badge">
-        ✨ MULTI-MARKET PREDICTIVE ENGINE V2.5
+        <h1 class="landing-hero-title">
+          Predict the Market<br><span>Smarter with AI</span>
+        </h1>
+        <p class="landing-hero-subtitle">
+          Analyze technical indicators, chart patterns, financial news, and AI-powered insights to make informed investment decisions with precision data.
+        </p>
+        <div class="landing-hero-ctas">
+          <a href="analyzer.html" class="btn-primary" style="padding: 14px 28px; font-size: 0.95rem;">Analyze a Stock</a>
+          <a href="dashboard.html" class="btn-secondary" style="padding: 14px 28px; font-size: 0.95rem;">View Demo</a>
+        </div>
       </div>
-      <h1 class="landing-hero-title">
-        Analyze & Predict Stock Market Trends Instantly
-      </h1>
-      <p class="landing-hero-subtitle">
-        Harness technical indicators, candlestick pattern matching, news sentiment scoring, and AI forecasting to stay ahead of market cycles.
-      </p>
       
-      <div class="landing-hero-ctas">
-        <a href="analyzer.html" class="btn-primary" style="text-decoration: none; padding: var(--sp-4) var(--sp-8); font-size: var(--fs-base); font-weight: 600; box-shadow: 0 4px 20px var(--accent-cyan-glow);">
-          Launch AI Stock Analyzer
-        </a>
-        <a href="dashboard.html" class="btn-secondary" style="text-decoration: none; padding: var(--sp-4) var(--sp-8); font-size: var(--fs-base); font-weight: 600;">
-          View Market Dashboard
-        </a>
-      </div>
-    </section>
-
-    <!-- ====== GRAPH PREVIEW TERMINAL ====== -->
-    <section class="landing-preview-container">
-      <div class="terminal-preview">
-        <div class="terminal-header">
-          <div class="terminal-dots">
-            <span class="terminal-dot" style="background: #ff5f56;"></span>
-            <span class="terminal-dot" style="background: #ffbd2e;"></span>
-            <span class="terminal-dot" style="background: #27c93f;"></span>
+      <!-- HERO WIDGET -->
+      <div class="hero-widget-box">
+        <div class="glass-panel-header" style="margin-bottom: 12px;">
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Active Ticker</span>
+            <span style="font-weight: 700; font-size: 1.15rem;">NVIDIA Corporation</span>
           </div>
-          <span style="font-size: var(--fs-xs); color: var(--text-secondary); font-family: var(--font-mono);">smai_predict_engine_v2.log</span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end;">
+            <span style="font-family: var(--font-mono); font-weight: 700; font-size: 1.1rem; color: var(--accent-blue);">$726.13</span>
+            <span style="color: var(--bullish-green); font-size: 0.75rem; font-weight: 600;">+2.4%</span>
+          </div>
         </div>
-        <div class="terminal-body">
-          <p><span style="color: var(--text-muted);">[12:04:12]</span> Fetching market data for AAPL... OK</p>
-          <p><span style="color: var(--text-muted);">[12:04:13]</span> Calculating RSI (58.4), MACD Golden Crossover detected</p>
-          <p><span style="color: var(--text-muted);">[12:04:13]</span> Pattern Engine matched: Bullish Engulfing Candlestick</p>
-          <p><span style="color: var(--text-muted);">[12:04:14]</span> Aggregating sentiment index (78% Positive, NewsAPI active)</p>
-          <p style="color: var(--accent-green);"><span style="color: var(--text-muted);">[12:04:15]</span> ML prediction finalized: DIRECTION -> BULLISH | CONFIDENCE -> 84.5%</p>
+        
+        <!-- Live chart simulation -->
+        <div class="hero-widget-chart">
+          <div class="hero-widget-chart-bar" style="height: 35%;"></div>
+          <div class="hero-widget-chart-bar" style="height: 48%;"></div>
+          <div class="hero-widget-chart-bar" style="height: 40%;"></div>
+          <div class="hero-widget-chart-bar" style="height: 65%;"></div>
+          <div class="hero-widget-chart-bar" style="height: 52%;"></div>
+          <div class="hero-widget-chart-bar" style="height: 80%;"></div>
+          <div class="hero-widget-chart-bar up" style="height: 88%;"></div>
+          <div class="hero-widget-chart-bar up" style="height: 95%;"></div>
+        </div>
+        
+        <div class="widget-metrics-row">
+          <div class="widget-kpi">
+            <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">🤖 AI Prediction</div>
+            <div style="color: var(--bullish-green); font-weight: 700; font-size: 0.9rem;">Bullish</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">87% Confidence</div>
+          </div>
+          <div class="widget-kpi">
+            <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">📰 Sentiment</div>
+            <div style="color: var(--accent-blue); font-weight: 700; font-size: 0.9rem;">Positive</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">Based on 342 Articles</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ====== FEATURES SECTION ====== -->
-    <section id="features" class="landing-features">
-      <h2 class="landing-features-title">
-        Startup-Level Features, Fully Client-Side
-      </h2>
+    <!-- NEWS INTELLIGENCE -->
+    <section class="landing-section">
+      <h2 class="section-headline">News Intelligence</h2>
+      <p class="section-subtext">AI-driven sentiment analysis of global financial news in real-time.</p>
       
-      <div class="features-grid">
-        <!-- CARD 1 -->
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3 class="feature-title">Technical Overlay Indicator</h3>
-          <p class="feature-desc">
-            Calculates complex RSI, MACD, Stochastic oscillators, and plots SMA/EMA bands inside premium Lightweight Candlestick Charts.
-          </p>
+      <div class="news-intelligence-grid">
+        <!-- Card 1 -->
+        <div class="news-card-wrapper bullish">
+          <div>
+            <div class="news-meta-row">
+              <span class="news-badge bullish">Bullish</span>
+              <span class="news-time">3m ago</span>
+            </div>
+            <h3 class="news-headline-txt">Tech Giants Expand AI Infrastructure Spending</h3>
+            <p class="news-desc-txt">Data suggests increased CAPEX in semiconductor sector leading to long-term growth signals.</p>
+          </div>
+          <span class="news-impact-tag high">⚡ Impact: High</span>
         </div>
-
-        <!-- CARD 2 -->
-        <div class="feature-card">
-          <div class="feature-icon">🤖</div>
-          <h3 class="feature-title">Generative AI Assistant</h3>
-          <p class="feature-desc">
-            Enter a Gemini API Key to chat dynamically with a financial analyzer that has direct real-time context of the loaded stock.
-          </p>
+        <!-- Card 2 -->
+        <div class="news-card-wrapper bearish">
+          <div>
+            <div class="news-meta-row">
+              <span class="news-badge bearish">Bearish</span>
+              <span class="news-time">15m ago</span>
+            </div>
+            <h3 class="news-headline-txt">Federal Reserve Hints at Prolonged High Rates</h3>
+            <p class="news-desc-txt">Minutes from recent meeting show hawkish stance, potentially cooling high-growth tech stocks.</p>
+          </div>
+          <span class="news-impact-tag critical">🚨 Impact: Critical</span>
         </div>
-
-        <!-- CARD 3 -->
-        <div class="feature-card">
-          <div class="feature-icon">📰</div>
-          <h3 class="feature-title">Curated Sentiment Index</h3>
-          <p class="feature-desc">
-            Curated mock databases or live NewsAPI integrations analyze current articles and generate real-time positive/negative sentiment splits.
-          </p>
+        <!-- Card 3 -->
+        <div class="news-card-wrapper neutral">
+          <div>
+            <div class="news-meta-row">
+              <span class="news-badge neutral">Neutral</span>
+              <span class="news-time">32m ago</span>
+            </div>
+            <h3 class="news-headline-txt">New Regulatory Framework Proposed for Fintech</h3>
+            <p class="news-desc-txt">Market analysts waiting for specific policy details before adjusting portfolio weightings.</p>
+          </div>
+          <span class="news-impact-tag low">⚙️ Impact: Low</span>
         </div>
       </div>
     </section>
 
-    <!-- ====== FOOTER ====== -->
-    <footer class="app-footer" style="text-align: center; padding: var(--sp-12) 0; border-top: 1px solid var(--glass-border); max-width: 1200px; margin: 0 auto;">
-      <p style="font-size: var(--fs-sm); color: var(--text-secondary);">
-        © 2026 SMAI Trading Solutions. Crafted with HSL fintech colors & dynamic glassmorphic panels.
-      </p>
-    </footer>
+    <!-- CHART PATTERN DETECTION -->
+    <section class="landing-section">
+      <div class="pattern-section-header">
+        <div>
+          <h2 class="section-headline">Chart Pattern Detection</h2>
+          <p class="section-subtext" style="margin-bottom: 0;">Our neural network scans thousands of tickers to identify high-probability price action patterns instantly.</p>
+        </div>
+        <a href="analyzer.html" class="btn-secondary" style="font-size: 0.85rem; padding: 10px 18px; display: flex; align-items: center; gap: 8px;">
+          Explore All Patterns →
+        </a>
+      </div>
+      
+      <div class="patterns-cards-grid">
+        <!-- Cup & Handle -->
+        <div class="pattern-card-item">
+          <span class="pattern-card-dot"></span>
+          <div class="pattern-shape-svg">
+            <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 10 C 10 35, 60 35, 60 10 C 60 20, 75 20, 75 10" stroke="rgba(158, 181, 255, 0.4)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M60 10 C 60 20, 75 20, 75 10" stroke="var(--bullish-green)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+          <h3 class="pattern-shape-title">Cup & Handle</h3>
+          <span class="pattern-shape-count">42 Assets Detected</span>
+        </div>
+        <!-- Double Top -->
+        <div class="pattern-card-item">
+          <span class="pattern-card-dot red"></span>
+          <div class="pattern-shape-svg">
+            <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 30 L 25 10 L 40 30 L 55 10 L 70 30" stroke="var(--bearish-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <h3 class="pattern-shape-title">Double Top</h3>
+          <span class="pattern-shape-count">18 Assets Detected</span>
+        </div>
+        <!-- Ascending Channel -->
+        <div class="pattern-card-item">
+          <span class="pattern-card-dot"></span>
+          <div class="pattern-shape-svg">
+            <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="10" y1="30" x2="70" y2="15" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round"/>
+              <line x1="15" y1="20" x2="75" y2="5" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M10 30 L 20 12 L 35 24 L 50 8 L 65 17" stroke="var(--bullish-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="pattern-shape-title">Ascending Channel</h3>
+          <span class="pattern-shape-count">65 Assets Detected</span>
+        </div>
+        <!-- Head & Shoulders -->
+        <div class="pattern-card-item">
+          <span class="pattern-card-dot blue"></span>
+          <div class="pattern-shape-svg">
+            <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 30 L 22 20 L 30 25 L 43 10 L 55 25 L 62 18 L 74 30" stroke="rgba(158, 181, 255, 0.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <h3 class="pattern-shape-title">Head & Shoulders</h3>
+          <span class="pattern-shape-count">12 Assets Detected</span>
+        </div>
+      </div>
+    </section>
 
+
+
+    <!-- FOOTER -->
+    <footer class="landing-footer">
+      <div class="footer-brand">
+        <div class="sidebar-logo">
+          <span class="sidebar-logo-icon">✨</span>
+          <span class="sidebar-logo-text" style="font-size: 1.15rem;">Share Market AI</span>
+        </div>
+        <p class="footer-desc">Precision data provided by AI Intelligence Corp. Empowering traders through advanced neural modeling and real-time sentiment analysis.</p>
+      </div>
+      <div>
+        <h4 class="footer-col-title">Product</h4>
+        <div class="footer-links-list">
+          <a href="analyzer.html" class="footer-link-item">AI Signals</a>
+          <a href="analyzer.html" class="footer-link-item">Market Screener</a>
+          <a href="analyzer.html" class="footer-link-item">API Docs</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="footer-col-title">Company</h4>
+        <div class="footer-links-list">
+          <a href="index.html" class="footer-link-item">Careers</a>
+          <a href="index.html" class="footer-link-item">Newsletter</a>
+          <a href="index.html" class="footer-link-item">Terms of Service</a>
+          <a href="index.html" class="footer-link-item">Privacy Policy</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
-  <script type="module" src="js/landing.js?v=20250528b"></script>
+  <script type="module" src="js/landing.js?v=20260712"></script>
 </body>
 </html>

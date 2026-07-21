@@ -6,259 +6,375 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SMAI Dashboard — Full portfolio stats, market gainers, sector heatmaps, and AI Fear & Greed indexing.">
-  <title>SMAI — Trading Dashboard</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-  <link rel="stylesheet" href="index.css?v=20250528b">
-  <script>
-    // Apply saved theme before first paint to prevent flash
-    if (localStorage.getItem('smai_theme') === 'light') {
-      document.documentElement.classList.add('light-mode-early');
-    }
-  </script>
+  <meta name="description" content="Share Market AI Dashboard — Portfolio Net Worth, Asset Allocation, and Global AI signals.">
+  <title>AI Engine — Portfolio Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+  <link rel="stylesheet" href="index.css?v=20260712">
 </head>
 <body>
 
-  <!-- ====== MAIN CONTAINER ====== -->
+  <!-- MAIN CONTAINER -->
   <div class="app-layout">
     
-    <!-- ====== SIDEBAR NAV ====== -->
+    <!-- SIDEBAR NAV -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <span class="sidebar-logo-icon">📈</span>
-        <div class="sidebar-logo-text">
-          SMAI
-        </div>
+        <a href="index.html" class="sidebar-logo">
+          <span class="sidebar-logo-icon">✨</span>
+          <div class="sidebar-logo-text">
+            AI Engine
+            <div class="sidebar-logo-sub">V3.4 Active</div>
+          </div>
+        </a>
       </div>
       
       <nav class="sidebar-nav">
-        <a href="index.html" class="sidebar-nav-item">
-          <span class="sidebar-nav-icon">🌐</span>
-          <span class="sidebar-nav-label">Landing Page</span>
-        </a>
-        <a href="dashboard.html" class="sidebar-nav-item active">
+        <a href="analyzer.html#overview" class="sidebar-nav-item">
           <span class="sidebar-nav-icon">📊</span>
           <span class="sidebar-nav-label">Dashboard</span>
         </a>
-        <a href="analyzer.html" class="sidebar-nav-item">
+        <a href="analyzer.html#technical" class="sidebar-nav-item">
           <span class="sidebar-nav-icon">📈</span>
-          <span class="sidebar-nav-label">Stock Analyzer</span>
+          <span class="sidebar-nav-label">Analytics</span>
+        </a>
+        <a href="dashboard.html" class="sidebar-nav-item active">
+          <span class="sidebar-nav-icon">💼</span>
+          <span class="sidebar-nav-label">Portfolio</span>
+        </a>
+        <a href="analyzer.html#ai-forecast" class="sidebar-nav-item">
+          <span class="sidebar-nav-icon">✨</span>
+          <span class="sidebar-nav-label">AI Signals</span>
         </a>
       </nav>
       
-      <div class="sidebar-footer">
-        <div class="theme-toggle-wrapper" style="padding: var(--sp-2) var(--sp-3); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-xs); color: var(--text-secondary);">
-          <span class="theme-label">Light Mode</span>
-          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Theme">
-            <span class="toggle-circle"></span>
-          </button>
-        </div>
 
+      
+      <div class="sidebar-footer">
+        <a href="#" class="sidebar-footer-item">
+          <span>❓</span> Support
+        </a>
+        <a href="#" class="sidebar-footer-item">
+          <span>🚪</span> Sign Out
+        </a>
       </div>
     </aside>
 
-    <!-- ====== MAIN CONTENT ====== -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
       
-      <!-- ====== HEADER ====== -->
-      <header class="app-header" id="app-header">
+      <!-- HEADER -->
+      <header class="app-header">
         <div class="header-left">
-          <h1 class="page-title">Market Overview</h1>
-          <p class="page-subtitle">Track portfolios, heatmaps, and global momentum indexes</p>
+          <h1 class="page-title">Portfolio Overview</h1>
+          <p class="page-subtitle">Track net values, sector allocation, and real-time AI signals</p>
         </div>
         
-        <div class="header-actions">
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="portfolio-search" class="search-input" placeholder="Search markets...">
+          </div>
+        </div>
+        
+        <div class="header-right">
           <div class="market-status positive">
-            <span class="status-dot"></span> Live Market Data (Simulated)
+            <span class="status-dot"></span> LIVE MARKET
+          </div>
+          <button class="header-icon-btn" aria-label="Notifications">
+            🔔
+          </button>
+          <div class="header-profile">
+            <img class="profile-avatar" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%239eb5ff'/><text x='30' y='60' font-size='30' font-weight='bold' fill='%230b0d13'>AM</text></svg>" alt="Alex Morgan avatar">
+            <div class="profile-info">
+              <span class="profile-name">Alex Morgan</span>
+              <span class="profile-role">Premium Investor</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <!-- ====== PORTFOLIO / OVERVIEW CARDS ====== -->
-      <section class="overview-cards">
-        <div class="overview-card cyan">
-          <div class="overview-card-label">Portfolio Net Value <span class="overview-card-icon">💼</span></div>
-          <div class="overview-card-value" id="portfolio-value">₹42,580.40</div>
-          <div class="overview-card-change up">+8.42% (+₹3,310.20) this month</div>
-        </div>
-
-        <div class="overview-card green">
-          <div class="overview-card-label">Total Realized P&L <span class="overview-card-icon">📈</span></div>
-          <div class="overview-card-value positive" id="portfolio-pnl">+₹5,890.10</div>
-          <div class="overview-card-change up">All-Time High Reached</div>
-        </div>
-
-        <div class="overview-card purple">
-          <div class="overview-card-label">ML Prediction Success Rate <span class="overview-card-icon">🤖</span></div>
-          <div class="overview-card-value" style="color: var(--accent-cyan);" id="ml-success">74.2%</div>
-          <div class="overview-card-change up">Across last 50 alerts</div>
-        </div>
-
-        <div class="overview-card red">
-          <div class="overview-card-label">Market Risk Score <span class="overview-card-icon">🚨</span></div>
-          <div class="overview-card-value" style="color: var(--accent-amber);" id="risk-score">Moderate (42)</div>
-          <div class="overview-card-change up">Hedge Ratio: 15% Recommended</div>
-        </div>
-      </section>
-
-      <!-- ====== MARKET INDEX TICKER ROW ====== -->
-      <section class="indices-strip" style="margin-top: var(--sp-4);">
-        <div class="index-card">
-          <span class="index-name">NIFTY 50</span>
-          <span class="index-price">22,310.50</span>
-          <span class="index-change positive">+0.82%</span>
-        </div>
-        <div class="index-card">
-          <span class="index-name">SENSEX</span>
-          <span class="index-price">73,420.10</span>
-          <span class="index-change positive">+0.75%</span>
-        </div>
-        <div class="index-card">
-          <span class="index-name">S&P 500</span>
-          <span class="index-price">5,180.20</span>
-          <span class="index-change negative">-0.24%</span>
-        </div>
-        <div class="index-card">
-          <span class="index-name">NASDAQ</span>
-          <span class="index-price">16,210.40</span>
-          <span class="index-change negative">-0.48%</span>
-        </div>
-        <div class="index-card">
-          <span class="index-name">RELIANCE.NS</span>
-          <span class="index-price">2,910.15</span>
-          <span class="index-change positive">+1.24%</span>
-        </div>
-      </section>
-
-      <!-- ====== TWO-COLUMN DASHBOARD GRID ====== -->
-      <div class="analyzer-grid" style="margin-top: var(--sp-4);">
+      <!-- DASHBOARD GRID -->
+      <div class="dashboard-grid">
         
-        <!-- ====== LEFT COLUMN: Heatmap + Gainers/Losers ====== -->
-        <div class="grid-col-8">
-          
-          <!-- SECTOR HEATMAP -->
-          <div class="glass-panel" style="height: auto;">
-            <div class="glass-panel-header">
-              <span class="glass-panel-title">🌐 Sector Heatmap</span>
-              <span class="panel-badge">Based on Daily Gain/Loss</span>
+        <!-- KPI METRICS ROW -->
+        <div class="metrics-row">
+          <!-- Total Investment -->
+          <div class="glass-panel metric-card">
+            <div class="metric-header">
+              <span>Total Investment</span>
+              <span class="metric-icon">💼</span>
             </div>
-            <div class="heatmap-grid" id="sector-heatmap">
-              <!-- Populated by dashboard.js -->
+            <div class="metric-value" id="total-investment">$142,850.42</div>
+            <div class="metric-change up">
+              <span>▲ +2.4%</span>
+              <span style="color: var(--text-muted); font-weight: normal;">vs last month</span>
             </div>
           </div>
-
-          <!-- GAINERS AND LOSERS ROW -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-top: var(--sp-4);">
-            <div class="glass-panel">
-              <div class="glass-panel-header">
-                <span class="glass-panel-title" style="color: var(--accent-green);">🔥 Top Gainers</span>
-              </div>
-              <table class="market-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Price</th>
-                    <th>Gain</th>
-                  </tr>
-                </thead>
-                <tbody id="gainers-table-body">
-                  <!-- Populated by dashboard.js -->
-                </tbody>
-              </table>
+          
+          <!-- Today's P/L -->
+          <div class="glass-panel metric-card">
+            <div class="metric-header">
+              <span>Today's P/L</span>
+              <span class="metric-icon">📈</span>
             </div>
-
-            <div class="glass-panel">
-              <div class="glass-panel-header">
-                <span class="glass-panel-title" style="color: var(--accent-magenta);">❄️ Top Losers</span>
-              </div>
-              <table class="market-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Price</th>
-                    <th>Loss</th>
-                  </tr>
-                </thead>
-                <tbody id="losers-table-body">
-                  <!-- Populated by dashboard.js -->
-                </tbody>
-              </table>
+            <div class="metric-value" style="color: var(--bullish-green);" id="today-pnl">+$1,240.00</div>
+            <!-- Histogram Visualizer Container -->
+            <div style="display: flex; gap: 4px; align-items: flex-end; height: 18px; margin-top: 4px;">
+              <div style="width: 14%; height: 20%; background-color: var(--bullish-green); opacity: 0.3; border-radius: 2px;"></div>
+              <div style="width: 14%; height: 40%; background-color: var(--bullish-green); opacity: 0.4; border-radius: 2px;"></div>
+              <div style="width: 14%; height: 35%; background-color: var(--bullish-green); opacity: 0.4; border-radius: 2px;"></div>
+              <div style="width: 14%; height: 70%; background-color: var(--bullish-green); opacity: 0.6; border-radius: 2px;"></div>
+              <div style="width: 14%; height: 60%; background-color: var(--bullish-green); opacity: 0.6; border-radius: 2px;"></div>
+              <div style="width: 14%; height: 90%; background-color: var(--bullish-green); border-radius: 2px;"></div>
+              <div style="width: 14%; height: 100%; background-color: var(--bullish-green); border-radius: 2px;"></div>
+            </div>
+          </div>
+          
+          <!-- Total Return -->
+          <div class="glass-panel metric-card">
+            <div class="metric-header">
+              <span>Total Return</span>
+              <span class="metric-icon">🚀</span>
+            </div>
+            <div class="metric-value" id="total-return">+14.2%</div>
+            <div class="metric-change up">
+              <span>+$18,240.15</span>
+              <span style="color: var(--text-muted); font-weight: normal;">all-time</span>
+            </div>
+          </div>
+          
+          <!-- Risk Score -->
+          <div class="glass-panel metric-card">
+            <div class="metric-header">
+              <span>Risk Score</span>
+              <span class="metric-icon">🚨</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div class="metric-value" style="color: var(--accent-blue);" id="risk-score">L-M</div>
+              <!-- Mini Risk Meter Donut SVG -->
+              <svg width="45" height="45" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="4"></circle>
+                <circle cx="18" cy="18" r="14" fill="none" stroke="var(--accent-blue)" stroke-width="4" stroke-dasharray="100" stroke-dashoffset="65" stroke-linecap="round"></circle>
+              </svg>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">
+              LOW-MEDIUM
             </div>
           </div>
         </div>
 
-        <!-- ====== RIGHT COLUMN: Fear & Greed Indicator ====== -->
-        <div class="grid-col-4">
-          
-          <!-- FEAR & GREED CARD -->
-          <div class="glass-panel" style="min-height: 380px;">
-            <div class="glass-panel-header">
-              <span class="glass-panel-title">⚖️ AI Fear & Greed Index</span>
+        <!-- ASSET ALLOCATION (LEFT COLUMN) -->
+        <div class="glass-panel allocation-col">
+          <div class="glass-panel-header">
+            <span class="glass-panel-title">Asset Allocation</span>
+            <span class="panel-badge">Portfolio sectors</span>
+          </div>
+          <div class="allocation-content">
+            <!-- Custom Donut Chart -->
+            <div class="chart-pie-wrapper">
+              <svg class="pie-svg" width="160" height="160" viewBox="0 0 42 42">
+                <circle class="pie-track" cx="21" cy="21" r="15.91549430918954"></circle>
+                <!-- Segment 1: Tech 45% (color: #9eb5ff) -->
+                <circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" stroke="#9eb5ff" stroke-dasharray="45 55" stroke-dashoffset="0"></circle>
+                <!-- Segment 2: Finance 25% (color: #2ecc71) -->
+                <circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" stroke="#2ecc71" stroke-dasharray="25 75" stroke-dashoffset="-45"></circle>
+                <!-- Segment 3: Energy 15% (color: #e74c3c) -->
+                <circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" stroke="#e74c3c" stroke-dasharray="15 85" stroke-dashoffset="-70"></circle>
+                <!-- Segment 4: Others 15% (color: #f39c12) -->
+                <circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" stroke="#f39c12" stroke-dasharray="15 85" stroke-dashoffset="-85"></circle>
+              </svg>
+              <div class="chart-pie-label">
+                <div class="chart-pie-total">12</div>
+                <div class="chart-pie-sub">Assets</div>
+              </div>
             </div>
-            <div class="fear-greed-container">
-              <canvas id="fear-greed-canvas" width="200" height="120"></canvas>
-              <div class="fear-greed-value" id="fear-greed-label">64</div>
-              <div class="fear-greed-label" id="fear-greed-desc" style="color: var(--accent-cyan);">GREED</div>
-              
-              <div class="fear-greed-scale" style="width: 100%;">
-                <span>Extreme Fear</span>
-                <div class="fear-greed-scale-bar">
-                  <div class="fear-greed-pointer" id="fear-greed-pointer" style="left: 64%;"></div>
+            
+            <!-- Legends list -->
+            <div class="allocation-legend">
+              <div class="legend-item">
+                <div class="legend-info">
+                  <span class="legend-dot" style="background-color: #9eb5ff;"></span>
+                  <span class="legend-name">Technology</span>
                 </div>
-                <span>Extreme Greed</span>
+                <span class="legend-val">45.0%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-info">
+                  <span class="legend-dot" style="background-color: #2ecc71;"></span>
+                  <span class="legend-name">Finance</span>
+                </div>
+                <span class="legend-val">25.0%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-info">
+                  <span class="legend-dot" style="background-color: #e74c3c;"></span>
+                  <span class="legend-name">Energy</span>
+                </div>
+                <span class="legend-val">15.0%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-info">
+                  <span class="legend-dot" style="background-color: #f39c12;"></span>
+                  <span class="legend-name">Others</span>
+                </div>
+                <span class="legend-val">15.0%</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- PORTFOLIO RECOMMENDATIONS -->
-          <div class="glass-panel" style="margin-top: var(--sp-4);">
-            <div class="glass-panel-header">
-              <span class="glass-panel-title">🤖 AI Rebalance Advice</span>
-            </div>
-            <div style="padding: var(--sp-4) var(--sp-5);">
-              <ul style="font-size: var(--fs-sm); color: var(--text-secondary); padding-left: 1.2rem; line-height: 1.8;">
-                <li>Volatility spikes detected in US tech; consider taking profits on high beta positions.</li>
-                <li>Indian renewable energy stocks (IREDA) are demonstrating robust support levels.</li>
-                <li>Reallocate 5% capital into safe-haven energy or gold assets to lower risk vectors.</li>
-              </ul>
-            </div>
+        <!-- AI OPTIMIZATION (RIGHT COLUMN) -->
+        <div class="glass-panel advice-col">
+          <div class="glass-panel-header">
+            <span class="glass-panel-title">AI Optimization Signal</span>
+            <span class="panel-badge" style="color: var(--accent-blue);">94.2% Conf.</span>
+          </div>
+          <div class="optimization-box">
+            <p class="advice-text advice-quote">
+              "Your portfolio is currently overweight in Tech by 8.4%. Consider reallocating to Finance or Energy to hedge against upcoming Fed rate volatility signals."
+            </p>
+            <button class="btn-simulation" id="run-rebalance-btn">
+              ⚡ Run Rebalance Simulation
+            </button>
           </div>
         </div>
+
+        <!-- GLOBAL WATCHLIST (BOTTOM PANEL) -->
+        <div class="glass-panel watchlist-col">
+          <div class="glass-panel-header">
+            <div>
+              <span class="glass-panel-title">Global Watchlist</span>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Real-time tracking of high-priority assets</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-watchlist-action" id="btn-edit-watchlist">Edit Watchlist</button>
+              <button class="btn-primary" style="font-size: 0.85rem;" id="btn-add-ticker">+ Add Ticker</button>
+            </div>
+          </div>
+          
+          <table class="watchlist-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Price</th>
+                <th>Daily Change</th>
+                <th>Trend (24H)</th>
+                <th>AI Prediction</th>
+              </tr>
+            </thead>
+            <tbody id="watchlist-table-body">
+              <!-- Apple Row -->
+              <tr style="cursor: pointer;" onclick="window.location.href='analyzer.html?symbol=AAPL'">
+                <td>
+                  <div class="watchlist-asset-cell">
+                    <div class="watchlist-asset-logo aapl"></div>
+                    <div class="watchlist-asset-info">
+                      <span class="watchlist-asset-name">Apple Inc.</span>
+                      <span class="watchlist-asset-symbol">AAPL</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="watchlist-price-cell">$189.42</td>
+                <td class="watchlist-change-cell positive">+1.24%</td>
+                <td>
+                  <canvas class="watchlist-sparkline-canvas" id="sparkline-aapl"></canvas>
+                </td>
+                <td>
+                  <span class="watchlist-tag strong-buy">9.2/10 Strong Buy</span>
+                </td>
+              </tr>
+              <!-- Tesla Row -->
+              <tr style="cursor: pointer;" onclick="window.location.href='analyzer.html?symbol=TSLA'">
+                <td>
+                  <div class="watchlist-asset-cell">
+                    <div class="watchlist-asset-logo tsla">T</div>
+                    <div class="watchlist-asset-info">
+                      <span class="watchlist-asset-name">Tesla Inc.</span>
+                      <span class="watchlist-asset-symbol">TSLA</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="watchlist-price-cell">$242.11</td>
+                <td class="watchlist-change-cell negative">-3.15%</td>
+                <td>
+                  <canvas class="watchlist-sparkline-canvas" id="sparkline-tsla"></canvas>
+                </td>
+                <td>
+                  <span class="watchlist-tag hold">4.5/10 Hold</span>
+                </td>
+              </tr>
+              <!-- Microsoft Row -->
+              <tr style="cursor: pointer;" onclick="window.location.href='analyzer.html?symbol=MSFT'">
+                <td>
+                  <div class="watchlist-asset-cell">
+                    <div class="watchlist-asset-logo msft">M</div>
+                    <div class="watchlist-asset-info">
+                      <span class="watchlist-asset-name">Microsoft Corp.</span>
+                      <span class="watchlist-asset-symbol">MSFT</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="watchlist-price-cell">$376.51</td>
+                <td class="watchlist-change-cell positive">+0.88%</td>
+                <td>
+                  <canvas class="watchlist-sparkline-canvas" id="sparkline-msft"></canvas>
+                </td>
+                <td>
+                  <span class="watchlist-tag buy">8.8/10 Buy</span>
+                </td>
+              </tr>
+              <!-- AMD Row -->
+              <tr style="cursor: pointer;" onclick="window.location.href='analyzer.html?symbol=AMD'">
+                <td>
+                  <div class="watchlist-asset-cell">
+                    <div class="watchlist-asset-logo amd">A</div>
+                    <div class="watchlist-asset-info">
+                      <span class="watchlist-asset-name">Advanced Micro Devices</span>
+                      <span class="watchlist-asset-symbol">AMD</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="watchlist-price-cell">$145.28</td>
+                <td class="watchlist-change-cell positive">+4.20%</td>
+                <td>
+                  <canvas class="watchlist-sparkline-canvas" id="sparkline-amd"></canvas>
+                </td>
+                <td>
+                  <span class="watchlist-tag top-pick">9.5/10 Top Pick</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div style="text-align: center; padding-top: 18px;">
+            <a href="#" style="color: var(--accent-blue); text-decoration: none; font-size: 0.85rem; font-weight: 700;" id="view-all-tickers-link">
+              View All 42 Tickers
+            </a>
+          </div>
+        </div>
+
       </div>
 
-      <!-- ====== FOOTER ====== -->
-      <footer class="app-footer">
-        <p>
-          ⚠️ Disclaimer: All trading stats and portfolios shown here are simulated demo records. Always do your own research before committing actual funds.
-        </p>
+      <!-- FOOTER -->
+      <footer style="margin-top: auto; padding: 24px 32px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+        <div>
+          © 2026 Share Market AI. All rights reserved. Precision data provided by AI Intelligence Corp.
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <a href="#" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+          <a href="#" style="color: inherit; text-decoration: none;">Terms of Service</a>
+          <a href="#" style="color: inherit; text-decoration: none;">API Docs</a>
+        </div>
       </footer>
+
     </main>
+
   </div>
 
-  <!-- ====== SCRIPTS ====== -->
-  <script type="module" src="js/dashboard.js?v=20250528b"></script>
-  <script>
-    // Theme toggle — plain script, runs immediately after DOM is parsed
-    (function() {
-      var toggleBtn = document.getElementById('theme-toggle');
-      var themeLabel = document.querySelector('.theme-label');
-      if (!toggleBtn) return;
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
 
-      function applyTheme(mode) {
-        var isLight = mode === 'light';
-        document.body.classList.toggle('light-mode', isLight);
-        toggleBtn.classList.toggle('active', isLight);
-        if (themeLabel) themeLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
-      }
-
-      applyTheme(localStorage.getItem('smai_theme') || 'dark');
-
-      toggleBtn.addEventListener('click', function() {
-        var nowLight = !document.body.classList.contains('light-mode');
-        applyTheme(nowLight ? 'light' : 'dark');
-        localStorage.setItem('smai_theme', nowLight ? 'light' : 'dark');
-      });
-    })();
-  </script>
+  <!-- SCRIPTS -->
+  <script type="module" src="js/dashboard.js?v=20260712_rev4"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
  * directly into the context stream.
  */
 
-import { state } from './app.js';
+import { state } from './app.js?v=20260712_rev4';
 
 // Chat state
 let chatOpen = false;
@@ -118,11 +118,14 @@ async function queryGemini(promptText, apiKey) {
   const model = 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
+  const isIndian = (currentContext.symbol || 'AAPL').toUpperCase().endsWith('.NS');
+  const curr = isIndian ? '₹' : '$';
+
   // Assemble system-level prompt context
   const contextText = `You are SMAI (Smart Market AI), an elite fintech market research assistant.
 You have access to the current technical analysis context:
 - Active Stock Symbol: ${currentContext.symbol}
-- Current Stock Price: ₹${currentContext.price ? currentContext.price.toFixed(2) : '150.00'}
+- Current Stock Price: ${curr}${currentContext.price ? currentContext.price.toFixed(2) : '150.00'}
 - AI Prediction Direction: ${currentContext.prediction?.direction || 'NEUTRAL'}
 - Prediction Confidence: ${currentContext.prediction?.confidence ? currentContext.prediction.confidence.toFixed(1) : '50'}%
 - RSI Indicator Value: ${currentContext.indicators?.rsi?.latest ? currentContext.indicators.rsi.latest.toFixed(1) : 'N/A'} (Signal: ${currentContext.indicators?.rsi?.signal || 'neutral'})
@@ -176,7 +179,9 @@ Prompt Requirements:
 function getLocalFallbackResponse(promptText) {
   const query = promptText.toLowerCase();
   const symbol = currentContext.symbol || 'AAPL';
-  const price = currentContext.price ? `₹${currentContext.price.toFixed(2)}` : '₹150.00';
+  const isIndian = symbol.toUpperCase().endsWith('.NS');
+  const curr = isIndian ? '₹' : '$';
+  const price = currentContext.price ? `${curr}${currentContext.price.toFixed(2)}` : `${curr}150.00`;
   const rsi = currentContext.indicators?.rsi?.latest ? currentContext.indicators.rsi.latest.toFixed(1) : '52';
   const rsiSig = currentContext.indicators?.rsi?.signal || 'NEUTRAL';
   const direction = currentContext.prediction?.direction || 'NEUTRAL';
