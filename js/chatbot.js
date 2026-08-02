@@ -5,7 +5,7 @@
  * directly into the context stream.
  */
 
-import { state } from './app.js?v=20260712_rev4';
+import { state } from './app.js?v=20260712_rev10';
 
 // Chat state
 let chatOpen = false;

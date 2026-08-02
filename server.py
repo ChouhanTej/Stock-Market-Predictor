@@ -9,7 +9,7 @@ import ssl
 # Disable SSL verification for development proxy requests (fixes macOS urllib certificate error)
 ssl._create_default_https_context = ssl._create_unverified_context
 
-PORT = 8000
+PORT = 8080
 
 class ProxyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):

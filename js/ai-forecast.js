@@ -5,6 +5,9 @@
  * and produces all derived metrics for the 14-section AI Forecast dashboard.
  */
 
+import { getSentiment } from './sentiment.js';
+import { ATR } from './indicators.js';
+
 // ─── Type Guard / Normalization ──────────────────────────────────────────────
 export function normalizeSymbol(sym) {
   console.log("[Audit] symbol passed:", sym);
@@ -728,7 +731,7 @@ export function computeAllForecastData(filteredData, basePrediction, indicators,
     risk: computeRiskAnalysis(filteredData, activePrediction, lastClose, symbol),
     newsImpact: computeNewsImpact(symbol),
     techScores: computeTechnicalScores(activePrediction, indicators),
-    enrichedPatterns: enrichPatterns(patterns, activePrediction, lastClose),
-    executiveSummary: computeExecutiveSummary(activePrediction, indicators, symbol, lastClose),
+    enrichedPatterns: enrichPatterns(patterns, lastClose, symbol),
+    executiveSummary: generateExecutiveSummary(activePrediction, indicators, sentiment, patterns, symbol, lastClose),
   };
 }

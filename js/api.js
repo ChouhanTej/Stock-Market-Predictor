@@ -167,7 +167,7 @@ export async function fetchStockData(symbol, _apiKey, outputSize = 'full') {
   const yhUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`;
   
   const isNode = typeof window === 'undefined';
-  const localOrigin = isNode ? 'http://localhost:8000' : '';
+  const localOrigin = isNode ? 'http://localhost:8080' : '';
   const proxies = [
     `${localOrigin}/api/proxy?url=${encodeURIComponent(yhUrl)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(yhUrl)}`,
@@ -303,7 +303,7 @@ export async function fetchLivePrice(symbol, _apiKey, bypassCache = false) {
   const yhUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`;
   
   const isNode = typeof window === 'undefined';
-  const localOrigin = isNode ? 'http://localhost:8000' : '';
+  const localOrigin = isNode ? 'http://localhost:8080' : '';
   const proxies = [
     `${localOrigin}/api/proxy?url=${encodeURIComponent(yhUrl)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(yhUrl)}`,

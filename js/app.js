@@ -3,13 +3,13 @@
  * Orchestrates all modules: API, Chart, Indicators, Patterns, Predictor
  */
 
-import { searchSymbols, isValidSymbol, fetchStockData, fetchLivePrice, warmLivePrices, generateDemoData, filterByTimeframe, getStockMeta } from './api.js?v=20260712_rev4';
+import { searchSymbols, isValidSymbol, fetchStockData, fetchLivePrice, warmLivePrices, generateDemoData, filterByTimeframe, getStockMeta } from './api.js?v=20260712_rev10';
 import { initChart, setChartData, setOverlay, setBollingerBands, removeOverlay, setSupportResistance, setPatternMarkers, drawSparkline, COLORS } from './chart.js?v=20260712_rev4';
-import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js?v=20260712_rev4';
-import { detectAllPatterns, detectSupportResistance } from './patterns.js?v=20260712_rev4';
-import { predict } from './predictor.js?v=20260712_rev4';
-import { getSentiment } from './sentiment.js?v=20260712_rev4';
-import { computeAllForecastData, computeForecastChartData, getCurrency } from './ai-forecast.js?v=20260712_rev5';
+import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, ADX, ATR, analyzeIndicators } from './indicators.js?v=20260712_rev10';
+import { detectAllPatterns, detectSupportResistance } from './patterns.js?v=20260712_rev10';
+import { predict } from './predictor.js?v=20260712_rev10';
+import { getSentiment } from './sentiment.js?v=20260712_rev10';
+import { computeAllForecastData, computeForecastChartData, getCurrency } from './ai-forecast.js?v=20260712_rev10';
 
 /* ======================================
    STATE
